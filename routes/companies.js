@@ -152,6 +152,96 @@ WHERE (qryCreditInsuranceConsol.CreditInsurance=1) AND (tblCompanies.Dormant=0);
   });
 
 
+  router.route("/history").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM qryHistoryCampaign
+      ORDER BY qryHistoryCampaign.EventDate DESC;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/enquiry").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM qryTendersCompany
+      ORDER BY qryTendersCompany.DateReceived DESC;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/contract").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM qryContactSearch
+      ORDER BY qryContactSearch.Surname, qryContactSearch.FirstName;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/companyCart").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM tblCompaniesCategories
+      ORDER BY tblCompaniesCategories.CategoryID;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/companyCampaign").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM tblCompaniesMailshots
+      ORDER BY tblCompaniesMailshots.MailshotID;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
 
 
 

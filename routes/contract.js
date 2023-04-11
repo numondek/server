@@ -33,6 +33,45 @@ router.route("/coststructure").get( async(req, res) => {
      
   });
 
+  
+
+  router.route("/costHeadA").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM tblCostGroupHeads;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+  router.route("/costHeadN").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT qryCostHeadsNotAllocated.CatCode, qryCostHeadsNotAllocated.CatName, qryCostHeadsNotAllocated.HeadName
+      FROM qryCostHeadsNotAllocated
+      ORDER BY qryCostHeadsNotAllocated.HeadName, qryCostHeadsNotAllocated.CatName;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
 
   router.route("/workingT").get( async(req, res) => {
     sql.connect(db, function(err){

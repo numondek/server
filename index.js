@@ -61,6 +61,11 @@ const enquiryRoute = require("./routes/enquiry");
 app.use("/enquiry", enquiryRoute);
 const trainingRoute = require("./routes/training");
 app.use("/training", trainingRoute);
+const staffRoute = require("./routes/staff");
+app.use("/staff", staffRoute);
+const settingsRoute = require("./routes/settings");
+app.use("/settings", settingsRoute);
+
 
 
 

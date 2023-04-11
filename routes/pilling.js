@@ -14,7 +14,7 @@ router.route("/pillog").get( async(req, res) => {
       }
     var con = new sql.Request();
   
-    con.query('SELECT * FROM qryPileLogList ORDER BY qryPileLogList.LogDate DESC , qryPileLogList.RigNo;', function(err, record) {
+    con.query('SELECT TOP 1000 * FROM qryPileLogList ORDER BY qryPileLogList.LogDate DESC , qryPileLogList.RigNo;', function(err, record) {
       if (err) {
           console.log(err);
           res.status(500).json({ status: false });

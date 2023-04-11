@@ -167,6 +167,22 @@ router.route("/stockitems").get( async(req, res) => {
     
   });
 
+  router.route("/stockOrder1").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT FORMAT(Quantity * [Price], 'C', 'en-US') AS [Value], tblStockOrderDetails.*, qryStockLevels.StockLevel FROM tblStockOrderDetails LEFT JOIN qryStockLevels ON tblStockOrderDetails.StockItemID = qryStockLevels.StockItemID WHERE ISNULL([Cancelled], 0) = 0;`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
 
 
   
