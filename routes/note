@@ -1,0 +1,11 @@
+SELECT Right(AddedBy,Len(AddedBy)-InStr(AddedBy,"\")) AS AddedBy2, *
+FROM tblContractMargins
+WHERE (((tblContractMargins.Deleted)=False))
+ORDER BY tblContractMargins.MarginDate DESC;
+
+
+
+review and approval
+
+SELECT tblEnquiries.EnquiryID, tblEnquiries.ApprovalEstYN, tblEnquiries.ApprovalEstBy, tblEnquiries.ApprovalEstDate, tblEnquiries.ApprovalEstComments, tblEnquiries.ApprovalTechYN, tblEnquiries.ApprovalTechBy, tblEnquiries.ApprovalTechDate, tblEnquiries.ApprovalTechComments, tblEnquiries.ApprovalContYN, tblEnquiries.ApprovalContBy, tblEnquiries.ApprovalContDate, tblEnquiries.ApprovalContComments, tblEnquiries.ApprovalDirYN, tblEnquiries.ApprovalDirBy, tblEnquiries.ApprovalDirDate, tblEnquiries.ApprovalDirComments, tblEnquiries.ApprovalSurvYN, tblEnquiries.ApprovalSurvBy, tblEnquiries.ApprovalSurvDate, tblEnquiries.ApprovalSurvComments
+FROM tblEnquiries;

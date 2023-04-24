@@ -152,12 +152,12 @@ WHERE (qryCreditInsuranceConsol.CreditInsurance=1) AND (tblCompanies.Dormant=0);
   });
 
 
-  router.route("/history").get(async (req, res) => {
+  router.route("/history").post(async (req, res) => {
     try {
       const con = await sql.connect(db);
       const result = await con.request().query(`SELECT *
-      FROM qryHistoryCampaign
-      ORDER BY qryHistoryCampaign.EventDate DESC;
+      FROM qryHistoryCampaign WHERE qryHistoryCampaign.CompanyID = ${req.body['CompanyID']}
+      ORDER BY qryHistoryCampaign.EventDate  DESC;
       `)
       res.status(200).json({
         data: result.recordsets[0]
@@ -206,7 +206,7 @@ WHERE (qryCreditInsuranceConsol.CreditInsurance=1) AND (tblCompanies.Dormant=0);
     }
   });
 
-  router.route("/companyCart").get(async (req, res) => {
+  router.route("/companyCat").get(async (req, res) => {
     try {
       const con = await sql.connect(db);
       const result = await con.request().query(`SELECT *
@@ -241,8 +241,119 @@ WHERE (qryCreditInsuranceConsol.CreditInsurance=1) AND (tblCompanies.Dormant=0);
       });
     }
   });
+  
+
+  router.route("/editCompanyCampaign").post(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`UPDATE qryCreditInsuranceConsol SET CreditInsurance = 1, CreditInsuranceBy = NULL, CreditInsuranceDate = NULL, CreditInsuranceValReq = NULL, CreditInsuranceVal = NULL, CreditInsuranceStartDate = NULL, CreditInsuranceNotes = NULL, CreditInsuranceCLN_No = NULL, CreditInsuranceCode = NULL, InsType = '${req.body['insType']}', CompanyName = '${req.body['companyName']}', OfficeName = '${req.body['officeName']}', GroupName = '${req.body['groupName']}', Dormant = 0, GroupID = '${req.body['groupID']}' FROM tblCompanies INNER JOIN tblCompanyGroups ON tblCompanies.GroupID = tblCompanyGroups.GroupID WHERE qryCreditInsuranceConsol.GroupID = '${req.body['groupID']}';`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+      if(res.status(200)){
+        console.log("hhhh");
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
 
 
+  router.route("/subCoGroup").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM tblCompanies
+      ORDER BY tblCompanies.Dormant, tblCompanies.CompanyName;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+
+  router.route("/campaignCompanies").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT qryContacts.ContactFullName AS ContactName, qryCompanyChoice.CompanyOffice AS Company, qryContacts.JobTitle, qryContacts.EmailShort, qryContacts.Mobile, qryContacts.Gone, qryContacts.ContactID, tblContactsMailshots.* FROM qryContacts INNER JOIN qryCompanyChoice ON qryContacts.CompanyID = qryCompanyChoice.CompanyID LEFT JOIN tblContactsMailshots ON tblContactsMailshots.ContactID = qryContacts.ContactID WHERE qryContacts.[ContactFullName] <> '' AND EXISTS (SELECT CompanyID FROM tblCompaniesMailshots WHERE MailshotID = [MailshotID] AND tblCompaniesMailshots.CompanyID = qryContacts.CompanyID) AND tblContactsMailshots.Omit = 0 ORDER BY tblContactsMailshots.Omit DESC, qryContacts.ContactFullName;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/campaignCompanies1").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT DISTINCT 
+      tblCompanies.CompanyName + 
+      IIF(tblCompanies.OfficeName IS NOT NULL, ' - ' + tblCompanies.OfficeName, IIF(tblCompanies.Town IS NULL, '', ' - ' + tblCompanies.Town)) AS CompanyOffice, 
+      tblCompanies.Telephone, 
+      tblCompanies.Website, 
+      tblCompanies.Email, 
+      tblCompanies.CompanyID AS ID, 
+      IIF(ISNULL(tblCompanies.Caution, 0) = 1, 'Y', '') AS UseCaution, 
+      tblCompanies.Dormant,
+      tblContactsMailshots.*,
+      qryContacts.ContactFullName -- Add the missing column to the SELECT statement
+    FROM 
+      tblCompanies
+      INNER JOIN tblContactsMailshots ON tblCompanies.CompanyID = tblContactsMailshots.CompanyID
+      LEFT JOIN qryContacts ON tblContactsMailshots.ContactID = qryContacts.ContactID 
+    WHERE 
+      tblCompanies.CompanyName IS NOT NULL AND 
+      tblCompanies.TypeID = 1 AND
+      tblContactsMailshots.Omit = 0 
+    ORDER BY 
+      tblCompanies.Dormant DESC, 
+      tblCompanies.CompanyName + 
+      IIF(tblCompanies.OfficeName IS NOT NULL, ' - ' + tblCompanies.OfficeName, IIF(tblCompanies.Town IS NULL, '', ' - ' + tblCompanies.Town)),
+      qryContacts.ContactFullName;  
+    `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/campaignInteraction").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblEnquiries.EstimatorID, tblHistory.* FROM tblHistory LEFT JOIN tblEnquiries ON tblHistory.EnquiryID = tblEnquiries.EnquiryID ORDER BY tblHistory.InteractionDate DESC, tblHistory.EventDate DESC
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  
 
 
 

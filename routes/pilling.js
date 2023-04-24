@@ -7,28 +7,95 @@ const router = express.Router();
 
 
 
-router.route("/pillog").get( async(req, res) => {
-  sql.connect(db, function(err){
-      if(err){
-          console.log(err);
-      }
-    var con = new sql.Request();
+// router.route("/pillog").get( async(req, res) => {
+//   sql.connect(db, function(err){
+//       if(err){
+//           console.log(err);
+//       }
+//     var con = new sql.Request();
   
-    con.query('SELECT TOP 1000 * FROM qryPileLogList ORDER BY qryPileLogList.LogDate DESC , qryPileLogList.RigNo;', function(err, record) {
-      if (err) {
-          console.log(err);
-          res.status(500).json({ status: false });
-      } else {
-          // console.log(record.recordsets[0]);
-          var data = record.recordsets[0];
-          // console.log('data[0]');
-          res.status(200).json({data});
-      }
+//     con.query('SELECT TOP 1000 * FROM qryPileLogList ORDER BY qryPileLogList.LogDate DESC , qryPileLogList.RigNo;', function(err, record) {
+//       if (err) {
+//           console.log(err);
+//           res.status(500).json({ status: false });
+//       } else {
+//           // console.log(record.recordsets[0]);
+//           var data = record.recordsets[0];
+//           // console.log('data[0]');
+//           res.status(200).json({data});
+//       }
       
-    })  
-  });
+//     })  
+//   });
    
+// });
+
+router.route("/pillog").post(async (req, res) => {
+
+  let contract;
+  let driller;
+  let rig;
+  let month;
+  let month0;
+  let approve;
+  let notExport;
+  let testType;
+  let faultChechlist;
+  let extOperative;
+  let signature;
+  let maintChecklist;
+  const  pageNumber = req.body['page'];
+  const  pageSize  = req.body['size']; 
+
+
+  sql.connect(db, function (err) {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ status: false });
+    } else {
+      const filterMap = {
+        contract: "EnquiryID",
+        driller: "DrillerID",
+        rig: "RigNo",
+        approve: "Approved",
+        testType: "EnquiryID",
+        faultChechlist: "ChecklistSaved",
+        extOperative: "TSSaved",
+        signature: "SignedDate",
+        maintChecklist: "ChecklistSaved2"
+      };
+      
+      for (const [key, value] of Object.entries(filterMap)) {
+        if (eval(key)) {
+          filters.push(`${value} = '${eval(key)}'`);
+        }
+      }
+
+    const whereClause = filters.length > 0 ? `WHERE ${filters.join(' AND ')} ` : '';
+    console.log(whereClause);
+      
+      const con = new sql.Request();
+      con.query(
+        `SELECT COUNT(*) as totalRows FROM qryPileLogList;
+         SELECT * FROM qryPileLogList ORDER BY qryPileLogList.LogDate DESC, qryPileLogList.RigNo 
+         OFFSET ${(pageNumber - 1) * pageSize} ROWS 
+         FETCH NEXT ${pageSize} ROWS ONLY;`,
+        function (err, record) {
+          if (err) {
+            console.log(err);
+            res.status(500).json({ status: false });
+          } else {
+            const totalRows = record.recordsets[0][0].totalRows;
+            const data = record.recordsets[1];
+            const totalPages = Math.ceil(totalRows / pageSize);
+            res.status(200).json({ data, totalPages });
+          }
+        }
+      );
+    }
+  });
 });
+
 
 
 

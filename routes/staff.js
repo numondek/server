@@ -150,4 +150,42 @@ router.route("/leaveYear").get(async (req, res) => {
     }
   });
 
+  router.route("/taskAndCheck").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM tblVehicleDate
+      ORDER BY tblVehicleDate.Void;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/driveHistory").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM tblVehicleDriver
+      ORDER BY tblVehicleDriver.StartDate DESC;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+
 module.exports = router;

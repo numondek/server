@@ -80,34 +80,28 @@ router.route("/coststructure").get( async(req, res) => {
         }
       var con = new sql.Request();
     
-      con.query(`SELECT 
-      tblWorkingTime.*, 
-      DATEDIFF(n, tblWorkingTime.TimeIn, DATEADD(hour, IIF(tblWorkingTime.NightShift=-1, 24, 0), tblWorkingTime.TimeOut)) AS WorkMinutes, 
-      IIF(ISNULL(WorkMinutes, 0)=0, CONVERT(INT, FLOOR(WorkMinutes/60.0)), '') AS WorkHr, 
-      WorkMinutes-CONVERT(INT, FLOOR(WorkMinutes/60.0))*60 AS WorkMin, 
-      WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0) AS TotMinutes, 
-      IIF(ISNULL(WorkMinutes, 0)=0, CONVERT(INT, FLOOR((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))/60.0)), '') AS TotHr, 
-      (WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))-CONVERT(INT, FLOOR((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))/60.0))*60 AS TotMin, 
-      FORMAT(WorkHr, '00') + ':' + FORMAT(WorkMin, '00') AS WorkHours, 
-      FORMAT(IIF(ISNULL(WorkMinutes, 0)=0, CONVERT(INT, FLOOR((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))/60.0)), ''), '00') 
-          + ':' 
-          + FORMAT((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))-CONVERT(INT, FLOOR((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))/60.0))*60, '00') AS TotHours, 
-      IIF(WorkMinutes<12*60, 'N', 'Y') AS ShiftNotOK, 
+      con.query(`SELECT tblWorkingTime.*, 
+      DATEDIFF(minute, tblWorkingTime.[TimeIn], DATEADD(hour, CASE WHEN tblWorkingTime.NightShift = -1 THEN 24 ELSE 0 END, tblWorkingTime.[TimeOut])) AS WorkMinutes, 
+      COALESCE(ROUND(WorkMinutes / 60, 0), '') AS WorkHr, 
+      COALESCE(WorkMinutes - ROUND(WorkMinutes / 60, 0) * 60, '') AS WorkMin, 
+      WorkMinutes + COALESCE(tblWorkingTime.[TravelTime], 0) AS TotMinutes, 
+      COALESCE(ROUND(TotMinutes / 60, 0), '') AS TotHr, 
+      COALESCE(TotMinutes - ROUND(TotMinutes / 60, 0) * 60, '') AS TotMin, 
+      FORMAT(ROUND(WorkMinutes / 60, 0), '00') + ':' + FORMAT(WorkMinutes % 60, '00') AS WorkHours, 
+      FORMAT(ROUND(TotMinutes / 60, 0), '00') + ':' + FORMAT(TotMinutes % 60, '00') AS TotHours, 
+      IIF(WorkMinutes < 12 * 60, 'N', 'Y') AS ShiftNotOK, 
       qryWorkingTimeBreaks.BreakLength, 
       qryWorkingTimeBreaks.BreakHours, 
-      tblEmployees.FirstName
-  FROM 
-      (tblWorkingTime LEFT JOIN qryWorkingTimeBreaks ON tblWorkingTime.ID = qryWorkingTimeBreaks.ID) 
-      LEFT JOIN tblEmployees ON tblWorkingTime.EmployeeID = tblEmployees.EmployeeID
-  WHERE 
-      ((tblWorkingTime.WorkDate < '2021-01-01') AND (ISNULL(tblWorkingTime.TSSaved, 0) = 0)) 
-      OR 
-      ((tblWorkingTime.WorkDate >= '2021-01-01') AND (ISNULL(tblWorkingTime.TSSaved, 0) = -1) AND (ISNULL(tblWorkingTime.Deleted, 0) = 0))
-  ORDER BY 
-      tblWorkingTime.WorkDate, 
-      tblEmployees.FirstName;
-  
-  `, function(err, record) {
+      tblEmployees.FirstName 
+    FROM ((tblWorkingTime 
+      LEFT JOIN qryWorkingTimeBreaks ON tblWorkingTime.ID = qryWorkingTimeBreaks.ID) 
+      LEFT JOIN tblEmployees ON tblWorkingTime.EmployeeID = tblEmployees.EmployeeID) 
+    WHERE (tblWorkingTime.WorkDate < CAST('2021-01-01' AS DATE) AND COALESCE(tblWorkingTime.[TSSaved], 0) = 0) 
+      OR (tblWorkingTime.WorkDate >= CAST('2021-01-01' AS DATE) AND COALESCE(tblWorkingTime.[TSSaved], 0) = -1 AND COALESCE(tblWorkingTime.[Deleted], 0) = 0) 
+    ORDER BY DATEDIFF(minute, tblWorkingTime.[TimeIn], DATEADD(hour, CASE WHEN tblWorkingTime.NightShift = -1 THEN 24 ELSE 0 END, tblWorkingTime.[TimeOut])),
+             WorkMinutes + COALESCE(tblWorkingTime.[TravelTime], 0),
+             tblEmployees.FirstName;
+    `, function(err, record) {
         if (err) {
             console.log(err);
             res.status(500).json({ status: false });

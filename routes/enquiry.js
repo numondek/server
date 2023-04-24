@@ -9,13 +9,188 @@ const router = express.Router();
 
 
 
-router.route("/enqiryViwe").get(async (req, res) => {
+
+
+router.route("/enquiryView").post(async (req, res) => {
+  let divisionID = req.body['divisionID'];
+  let enquiryTypeID = req.body['enquiryTypeID'];
+  let estimatorID = req.body['estimatorID'];
+  let proposalsID = req.body['proposalsID'];
+  let cMFID = req.body['cMFID'];
+  let qSID = req.body['qSID'];
+  let clientID = req.body['clientID'];
+  let clientGID = req.body['clientGID'];
+  let pwtID = req.body['pwtID'];
+  let qualityID = req.body['qualityID'];
+  let prioritiesID = req.body['prioritiesID'];
+  let sourceID = req.body['sourceID'];
+  let fPSCID = req.body['fPSCID'];
+  let fPSTID = req.body['fPSTID'];
+  let fPSPTID = req.body['fPSPTID'];
+  let industrySectorID = req.body['industrySectorID'];
+  let financeTypeID = req.body['financeTypeID'];
+  let workRegionID = req.body['workRegionID'];
+  let marketSTID = req.body['marketSTID'];
+  let mainTenderStatus = req.body['mainTenderStatus'];
+  let majorProjectStatus = req.body['majorProjectStatus'];
+  let jobOnHoldStatus = req.body['jobOnHoldStatus'];
+  let jobSecuredByClientStatus = req.body['jobSecuredByClientStatus'];
+  let targetEnquiryStatus = req.body['targetEnquiryStatus'];
+  let dateSelected = req.body['dateSelected'];
+  let startDate = req.body['startDate'];
+  let endDate = req.body['endDate'];
+  const page = req.body['page'];
+  const size = req.body['size'];
+
+
+  try {
+    const filters = [];
+
+
+    const variables = [
+      ['DivisionID', divisionID],
+      ['EnquiryTypeID', enquiryTypeID],
+      ['EstimatorID', estimatorID],
+      ['ProposalsID', proposalsID],
+      ['ManagerID', cMFID],
+      ['SurveyorID', qSID],
+      ['CompanyID', clientID],
+      ['GroupID', clientGID],
+      ['PileTypeID', pwtID],
+      ['QualityID', qualityID],
+      ['PriorityID', prioritiesID],
+      ['SourceID', sourceID],
+      ['FPSConstruction', fPSCID],
+      ['FPSType', fPSTID],
+      ['FPSPileType', fPSPTID],
+      ['M_Industry', industrySectorID],
+      ['M_Finance', financeTypeID],
+      ['M_Region', workRegionID],
+      ['M_Market', marketSTID],
+      ['MainTender', mainTenderStatus],
+      ['MajorProject', majorProjectStatus],
+      ['onHold', jobOnHoldStatus],
+      ['ContractSecured', jobSecuredByClientStatus],
+      ['Target', targetEnquiryStatus],
+    ];
+
+    const dates = [
+      ['Received', 'DateReceived'],
+      ['Returned', 'DateReturned'],
+      ['Due', 'DateDue'],
+      ['Start', 'ContPropStart'],
+      ['WonPrelim', 'DateOrderPrelim'],
+      ['Won', 'DateOrder'],
+      ['Lost', 'LostDate'],
+      ['Complete', 'CompleteSiteDate']
+    ];
+
+    for (const [variable, value] of variables) {
+      if (value || value != null) {
+        filters.push(`qryEnquiriesFull.${variable} = ${typeof(value) === 'boolean' ? `'${value}'` : value}`);
+      }
+    }
+
+    var time;
+
+    for (const [date, value] of dates) {
+      if(dateSelected == date){
+        time = `${value} BETWEEN '${startDate}' AND '${endDate}' AND `;
+      }
+    }
+    console.log(time);
+
+    const con = await sql.connect(db);
+
+    const offset = (page - 1) * size;
+    const whereClause = filters.length > 0 ? `WHERE ${dateSelected == null ? '' : time} ${filters.join(' AND ')} ` : '';
+    console.log(whereClause);
+
+    const result = await con.query(
+      `SELECT COUNT(*) as TotalRows
+       FROM qryEnquiriesFull ${whereClause};`
+    );
+    const totalPages = result.recordsets[0][0];
+
+    const queryResult = await con.query(
+      `SELECT *
+      FROM qryEnquiriesFull ${whereClause} 
+      ORDER BY LEN(EnquiryNo) DESC , RIGHT(EnquiryNo,LEN(EnquiryNo)-1) DESC OFFSET ${offset} ROWS FETCH NEXT ${size} ROWS ONLY;`
+    );
+    const data = queryResult.recordsets[0];
+
+    res.status(200).json({
+      data,
+      totalPages
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/enquiryHistory").get(async (req, res) => {
   try {
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 1000 *
-    FROM qryEnquiriesFull
-    ORDER BY Len(EnquiryNo) DESC , Right(EnquiryNo,Len(EnquiryNo)-1) DESC;    
-    `)
+    const result = await con.request().query(`SELECT tblHistory.*
+FROM tblHistory
+ORDER BY tblHistory.EventDate DESC;
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/enquiryPA").get(async (req, res) => {
+  try {
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
+    FROM qryEnquiriesForemen
+    ORDER BY qryEnquiriesForemen.StartDate;    
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+
+router.route("/enquiryCM").get(async (req, res) => {
+  try {
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT Right(AddedBy,Len(AddedBy)-CHARINDEX('',AddedBy)) AS AddedBy2, * FROM tblContractMargins WHERE Deleted = 0 ORDER BY MarginDate DESC;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/enquiryRA").get(async (req, res) => {
+  try {
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT tblEnquiries.EnquiryID, tblEnquiries.ApprovalEstYN, tblEnquiries.ApprovalEstBy, tblEnquiries.ApprovalEstDate, tblEnquiries.ApprovalEstComments, tblEnquiries.ApprovalTechYN, tblEnquiries.ApprovalTechBy, tblEnquiries.ApprovalTechDate, tblEnquiries.ApprovalTechComments, tblEnquiries.ApprovalContYN, tblEnquiries.ApprovalContBy, tblEnquiries.ApprovalContDate, tblEnquiries.ApprovalContComments, tblEnquiries.ApprovalDirYN, tblEnquiries.ApprovalDirBy, tblEnquiries.ApprovalDirDate, tblEnquiries.ApprovalDirComments, tblEnquiries.ApprovalSurvYN, tblEnquiries.ApprovalSurvBy, tblEnquiries.ApprovalSurvDate, tblEnquiries.ApprovalSurvComments FROM tblEnquiries;`)
     res.status(200).json({
       data: result.recordsets[0]
     });
@@ -331,7 +506,7 @@ router.route("/requseted").get(async (req, res) => {
     var con = new sql.Request();
 
 
-    con.query(`SELECT FirstName + ' ' + COALESCE(Surname, '') AS Name, tblEmployees.EmployeeID, CASE WHEN COALESCE([OfficeYN],0)=-1 THEN 'Office' WHEN COALESCE([ForemanYN],0)=-1 THEN 'Foreman' ELSE '' END AS Role, tblEmployees.Dormant AS Old FROM tblEmployees WHERE (COALESCE([OfficeYN],0)=-1 AND Surname IS NOT NULL) OR (Surname IS NOT NULL AND COALESCE([ForemanYN],0)=-1) ORDER BY tblEmployees.Dormant DESC, CASE WHEN COALESCE([OfficeYN],0)=-1 THEN 'Office' WHEN COALESCE([ForemanYN],0)=-1 THEN 'Foreman' ELSE '' END, tblEmployees.FirstName;`, function (err, record) {
+    con.query(`SELECT (FirstName + ' ' + COALESCE(Surname, '')) AS Name, tblEmployees.EmployeeID, IIF(COALESCE([OfficeYN], 0) = -1, 'Office', IIF(COALESCE([ForemanYN], 0) = -1, 'Foreman', '')) AS Role, tblEmployees.Dormant AS Old FROM tblEmployees   ;`, function (err, record) {
       if (err) {
         console.log(err);
         res.status(500).json({

@@ -65,6 +65,13 @@ const staffRoute = require("./routes/staff");
 app.use("/staff", staffRoute);
 const settingsRoute = require("./routes/settings");
 app.use("/settings", settingsRoute);
+const opportunityRoute = require("./routes/opportunities");
+app.use("/opportunity", opportunityRoute);
+const incidentRoute = require("./routes/incident");
+app.use("/incident", incidentRoute);
+const filterRoute = require("./routes/filter");
+app.use("/filter", filterRoute);
+
 
 
 
