@@ -94,11 +94,11 @@ router.route("/enquiryView").post(async (req, res) => {
     var time;
 
     for (const [date, value] of dates) {
-      if(dateSelected == date){
+      if (dateSelected == date) {
         time = `${value} BETWEEN '${startDate}' AND '${endDate}' AND `;
       }
     }
-    console.log(time);
+    
 
     const con = await sql.connect(db);
 
@@ -391,6 +391,46 @@ router.route("/contract").get(async (req, res) => {
 
 });
 
+router.route("/cMcontract").get(async (req, res) => {
+  try {
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT DISTINCT CONCAT(FirstName, ' ', Surname) AS EngineerName,
+    tblEmployees.EmployeeID,
+    CASE WHEN Dormant = 0 THEN 'N' ELSE 'Y' END AS Old,
+    tblEmployees.Dormant
+FROM tblEmployees
+INNER JOIN tblEnquiries ON tblEmployees.EmployeeID = tblEnquiries.ManagerID
+INNER JOIN tblContractMargins ON tblEnquiries.EnquiryID = tblContractMargins.EnquiryID
+
+ORDER BY tblEmployees.Dormant DESC, EngineerName;`);
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/dVcontract").get(async (req, res) => {
+  try {
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT DISTINCT CONCAT(FirstName, ' ', Surname) AS EngineerName, tblEmployees.EmployeeID, tblEmployees.WinLogin, tblEmployees.EmailAddress, CASE WHEN tblEmployees.Dormant = 0 THEN 'N' ELSE 'Y' END AS Old FROM tblEmployees WHERE OfficeYN = 1 AND tblEmployees.FirstName IS NOT NULL ORDER BY Old, CONCAT(FirstName, ' ', Surname);`);
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
 router.route("/cubeContract").get(async (req, res) => {
   sql.connect(db, function (err) {
     if (err) {
@@ -586,6 +626,8 @@ router.route("/docType").get(async (req, res) => {
   });
 
 });
+
+
 
 router.route("/operative").get(async (req, res) => {
   sql.connect(db, function (err) {
@@ -993,7 +1035,7 @@ router.route("/accountM").get(async (req, res) => {
 router.route("/chaseBy").get(async (req, res) => {
   try {
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT DISTINCT FirstName + ' ' + Surname AS ChaseBy, tblEmployees.EmployeeID, COUNT(tblCompanies.CompanyID) AS Companies FROM tblEmployees INNER JOIN tblCompanies ON tblEmployees.EmployeeID = tblCompanies.NextChaseBy WHERE ISNULL(OfficeYN,0)=-1 GROUP BY FirstName + ' ' + Surname, tblEmployees.EmployeeID ORDER BY FirstName + ' ' + Surname;`)
+    const result = await con.request().query(`SELECT DISTINCT FirstName + ' ' + Surname AS ChaseBy, tblEmployees.EmployeeID, COUNT(tblCompanies.CompanyID) AS Companies FROM tblEmployees INNER JOIN tblCompanies ON tblEmployees.EmployeeID = tblCompanies.NextChaseBy  GROUP BY FirstName + ' ' + Surname, tblEmployees.EmployeeID ORDER BY FirstName + ' ' + Surname;`)
     res.status(200).json({
       data: result.recordsets[0]
     });

@@ -32,18 +32,18 @@ const router = express.Router();
 
 router.route("/pillog").post(async (req, res) => {
 
-  let contract;
-  let driller;
-  let rig;
-  let month;
-  let month0;
-  let approve;
-  let notExport;
-  let testType;
-  let faultChechlist;
-  let extOperative;
-  let signature;
-  let maintChecklist;
+  let contract = req.body['contract'];
+  let driller = req.body['driller'];
+  let rig = req.body['rig'];
+  let month = req.body['month'];
+  let month0 = req.body['month0'];
+  let approve  = req.body['approve'];
+  let notExport  = req.body['notExport'];
+  let testType  = req.body['testType'];
+  let faultChechlist  = req.body['faultChechlist'];
+  let extOperative  = req.body['extOperative'];
+  let signature  = req.body['signature'];
+  let maintChecklist  = req.body['maintChecklist'];
   const  pageNumber = req.body['page'];
   const  pageSize  = req.body['size']; 
 
@@ -53,21 +53,23 @@ router.route("/pillog").post(async (req, res) => {
       console.log(err);
       res.status(500).json({ status: false });
     } else {
-      const filterMap = {
-        contract: "EnquiryID",
-        driller: "DrillerID",
-        rig: "RigNo",
-        approve: "Approved",
-        testType: "EnquiryID",
-        faultChechlist: "ChecklistSaved",
-        extOperative: "TSSaved",
-        signature: "SignedDate",
-        maintChecklist: "ChecklistSaved2"
-      };
+      const filters = [];
+
+      const filterMap = [
+        [contract, "EnquiryID"],
+        [driller, "DrillerID"],
+        [rig, "RigNo"],
+        [approve, "Approved"],
+        [testType, "EnquiryID"],
+        [faultChechlist, "ChecklistSaved"],
+        [extOperative, "TSSaved"],
+        [signature, "SignedDate"],
+        [maintChecklist, "ChecklistSaved2"]
+      ];
       
-      for (const [key, value] of Object.entries(filterMap)) {
-        if (eval(key)) {
-          filters.push(`${value} = '${eval(key)}'`);
+      for (const [value, filterMaps] of filterMap) {
+        if (value || value != null) {
+          filters.push(`qryPileLogList.${filterMaps} = ${typeof(value) === 'boolean' || 'String' ? `'${value}'` : value}`);
         }
       }
 
@@ -76,8 +78,8 @@ router.route("/pillog").post(async (req, res) => {
       
       const con = new sql.Request();
       con.query(
-        `SELECT COUNT(*) as totalRows FROM qryPileLogList;
-         SELECT * FROM qryPileLogList ORDER BY qryPileLogList.LogDate DESC, qryPileLogList.RigNo 
+        `SELECT COUNT(*) as totalRows FROM qryPileLogList ${whereClause};
+         SELECT * FROM qryPileLogList ${whereClause} ORDER BY qryPileLogList.LogDate DESC, qryPileLogList.RigNo 
          OFFSET ${(pageNumber - 1) * pageSize} ROWS 
          FETCH NEXT ${pageSize} ROWS ONLY;`,
         function (err, record) {

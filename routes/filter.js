@@ -89,6 +89,21 @@ router.route("/enquiryfilter").post(async (req, res) => {
     }
   });
 
+  router.route("/manageBy").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT DISTINCT CONCAT(FirstName, ' ', Surname) AS EngineerName, tblEmployees.EmployeeID, CASE WHEN Dormant = 0 THEN 'N' ELSE 'Y' END AS Old, tblEmployees.Dormant FROM tblEmployees INNER JOIN qryOpportunitiesFull ON tblEmployees.EmployeeID = qryOpportunitiesFull.OppManagerID ORDER BY tblEmployees.Dormant DESC, CONCAT(FirstName, ' ', Surname);`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
   router.route("/enquiryQuality").get(async (req, res) => {
     try {
       const con = await sql.connect(db);
@@ -258,6 +273,77 @@ router.route("/enquiryfilter").post(async (req, res) => {
     }
   });
 
+
+  router.route("/interactionType").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblHistoryType.HistoryType, tblHistoryType.TypeID
+      FROM tblHistoryType;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/attendee").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT FirstName + ' ' + Surname AS EngineerName, EmployeeID
+      FROM tblEmployees
+      WHERE FirstName + ' ' + Surname IS NOT NULL AND OfficeYN = 1
+      ORDER BY Dormant DESC, EngineerName;`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/oppStatus").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT DISTINCT tblOpportunityStatus.OppStatus, tblOpportunityStatus.OppStatusID
+      FROM tblOpportunityStatus;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+  router.route("/chaseby").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT FirstName + ' ' + Surname AS EngineerName, EmployeeID
+      FROM tblEmployees
+      WHERE OfficeYN = 1
+      ORDER BY EngineerName;`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
 
 
 module.exports = router;

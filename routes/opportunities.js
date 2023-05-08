@@ -11,7 +11,7 @@ const router = express.Router();
 router.route("/data").get(async (req, res) => {
     try {
       const con = await sql.connect(db);
-      const result = await con.request().query(`SELECT * FROM qryOpportunitiesFull WHERE qryOpportunitiesFull.[EnquiryNo] IS NOT NULL ORDER BY LEN(EnquiryNo) DESC, RIGHT(EnquiryNo, LEN(EnquiryNo)-1) DESC;`)
+      const result = await con.request().query(`SELECT *, qryEmployees.Initials FROM qryOpportunitiesFull LEFT JOIN qryEmployees  ON qryOpportunitiesFull.NextChaseBy = qryEmployees.EmployeeID WHERE qryOpportunitiesFull.[EnquiryNo] IS NOT NULL ORDER BY LEN(EnquiryNo)  DESC, RIGHT(EnquiryNo, LEN(EnquiryNo)-1) DESC;`)
       res.status(200).json({
         data: result.recordsets[0]
       });
@@ -27,7 +27,12 @@ router.route("/data").get(async (req, res) => {
   router.route("/interaction").get(async (req, res) => {
     try {
       const con = await sql.connect(db);
-      const result = await con.request().query(`SELECT tblEnquiries.EstimatorID, tblHistory.* FROM tblHistory LEFT JOIN tblEnquiries ON tblHistory.EnquiryID = tblEnquiries.EnquiryID ORDER BY tblHistory.InteractionDate DESC, tblHistory.EventDate DESC;`)
+      const result = await con.request().query(`SELECT tblEnquiries.EstimatorID, tblHistory.*, tblEnquiries.Address, qryContacts.ContactFullName
+      FROM tblHistory
+      LEFT JOIN tblEnquiries
+      ON tblHistory.EnquiryID = tblEnquiries.EnquiryID LEFT JOIN  qryContacts ON tblHistory.ContactID = qryContacts.ContactID
+      ORDER BY tblHistory.InteractionDate DESC, tblHistory.EventDate DESC, tblEnquiries.EnquiryNo DESC;
+      `)
       res.status(200).json({
         data: result.recordsets[0]
       });

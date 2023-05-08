@@ -246,7 +246,7 @@ WHERE (qryCreditInsuranceConsol.CreditInsurance=1) AND (tblCompanies.Dormant=0);
   router.route("/editCompanyCampaign").post(async (req, res) => {
     try {
       const con = await sql.connect(db);
-      const result = await con.request().query(`UPDATE qryCreditInsuranceConsol SET CreditInsurance = 1, CreditInsuranceBy = NULL, CreditInsuranceDate = NULL, CreditInsuranceValReq = NULL, CreditInsuranceVal = NULL, CreditInsuranceStartDate = NULL, CreditInsuranceNotes = NULL, CreditInsuranceCLN_No = NULL, CreditInsuranceCode = NULL, InsType = '${req.body['insType']}', CompanyName = '${req.body['companyName']}', OfficeName = '${req.body['officeName']}', GroupName = '${req.body['groupName']}', Dormant = 0, GroupID = '${req.body['groupID']}' FROM tblCompanies INNER JOIN tblCompanyGroups ON tblCompanies.GroupID = tblCompanyGroups.GroupID WHERE qryCreditInsuranceConsol.GroupID = '${req.body['groupID']}';`)
+      const result = await con.request().query(`UPDATE qryCreditInsuranceConsol SET CreditInsurance = 1, CreditInsuranceBy = NULL, CreditInsuranceDate = NULL, CreditInsuranceValReq = NULL, CreditInsuranceVal = NULL, CreditInsuranceStartDate = NULL, CreditInsuranceNotes = NULL, CreditInsuranceCLN_No = NULL, CreditInsuranceCode = NULL, InsType = '${req.body['insType']}', CompanyName = '${req.body['companyName']}', OfficeName = '${req.body['officeName']}', GroupName = '${req.body['groupName']}',  GroupID = '${req.body['groupID']}' FROM tblCompanies INNER JOIN tblCompanyGroups ON tblCompanies.GroupID = tblCompanyGroups.GroupID WHERE qryCreditInsuranceConsol.GroupID = '${req.body['groupID']}';`)
       res.status(200).json({
         data: result.recordsets[0]
       });
