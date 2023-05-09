@@ -135,8 +135,8 @@ router.route("/enquiryView").post(async (req, res) => {
 router.route("/enquiryHistory").get(async (req, res) => {
   try {
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT tblHistory.*
-FROM tblHistory
+    const result = await con.request().query(`SELECT tblHistory.*, qryContacts.ContactFullName, tblCompanies.CompanyName + IIF(tblCompanies.OfficeName IS NOT NULL, ' - ' + tblCompanies.OfficeName, IIF(tblCompanies.Town IS NULL, '', ' - ' + tblCompanies.Town)) AS CompanyTown
+FROM tblHistory LEFT JOIN qryContacts ON tblHistory.ContactID = qryContacts.ContactID LEFT JOIN  tblCompanies ON tblHistory.CompanyID = tblCompanies.CompanyID
 ORDER BY tblHistory.EventDate DESC;
 `)
     res.status(200).json({
