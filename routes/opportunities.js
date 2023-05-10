@@ -45,4 +45,47 @@ router.route("/data").get(async (req, res) => {
   });
 
 
+  router.route("/search").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT qryOpportunitiesFull.EnquiryNo AS [Opp No],
+      qryOpportunitiesFull.EnqName AS Name,
+      ISNULL(Address, '') + IIF(Town IS NULL OR Town = '', '', ', ' + Town) AS OppAddress,
+      qryOpportunitiesFull.EnquiryID,
+      IIF(ISNULL(OppWon, 0) = -1, 'Converted', IIF(ISNULL(OppDead, 0) = -1, 'Dead', OppStatus)) AS Status,
+      qryOpportunitiesFull.NextChaseDate2 AS [Next Chase]
+FROM qryOpportunitiesFull
+WHERE qryOpportunitiesFull.EnquiryNo <> ''
+ AND qryOpportunitiesFull.OppWon = 0
+ AND qryOpportunitiesFull.OppDead = 0
+ORDER BY qryOpportunitiesFull.EnquiryID DESC;`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+
+  router.route("/andNewOpportunities").post(async (req, res) => {
+    let EnquiryID = req.body['EnquiryID'];
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT EnquiryNo AS NumberOnly, tblEnquiries.* FROM tblEnquiries WHERE tblEnquiries.EnquiryID = ${EnquiryID} ORDER BY tblEnquiries.EnquiryNo DESC;`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
 module.exports = router;
