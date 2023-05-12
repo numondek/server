@@ -88,4 +88,125 @@ ORDER BY qryOpportunitiesFull.EnquiryID DESC;`)
     }
   });
 
+
+
+  router.route("/andNewOpportunitiesCompany").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT DISTINCT 
+      CompanyName + 
+      CASE 
+          WHEN OfficeName IS NOT NULL THEN ' - ' + OfficeName
+          WHEN Town IS NOT NULL THEN ' - ' + Town
+          ELSE ''
+      END AS CompanyOffice,
+      Telephone,
+      Fax,
+      Email,
+      CompanyID AS ID,
+      CASE 
+          WHEN ISNULL(Caution, 0) = 1 THEN 'Y'
+          ELSE ''
+      END AS UseCaution,
+      Dormant
+  FROM tblCompanies
+  WHERE CompanyName IS NOT NULL AND TypeID = 1
+  ORDER BY Dormant DESC, CompanyOffice;
+  `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+  router.route("/andNewOpportunitiesSub").post(async (req, res) => {
+    let EnquiryID = req.body['EnquiryID'];
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT 
+      CONVERT(VARCHAR, tblEnquiryTenders.EnquiryID) + '-' + CONVERT(VARCHAR, tblEnquiryTenders.CompanyID) AS EnqCo,
+      tblEnquiryTenders.*
+  FROM tblEnquiryTenders
+  INNER JOIN tblEnquiries ON tblEnquiryTenders.EnquiryID = tblEnquiries.EnquiryID
+  WHERE tblEnquiries.EnquiryID = ${EnquiryID}
+  ORDER BY tblEnquiryTenders.MainTender DESC, tblEnquiryTenders.Deleted, tblEnquiryTenders.TenderNo;
+  `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+  router.route("/andNewOpportunitiesContract").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT DISTINCT 
+      CASE 
+          WHEN firstname IS NULL THEN ISNULL(Initials, '')
+          ELSE firstname
+      END + ' ' + ISNULL(Surname, '') AS ContactFullName,
+      Telephone + CASE 
+                      WHEN Extension IS NULL THEN ''
+                      ELSE ' - Ext ' + Extension
+                  END AS TelExt,
+      tblContacts.Mobile,
+      tblContacts.Email,
+      tblContacts.ContactID,
+      tblContacts.Gone
+  FROM tblContacts
+  WHERE tblContacts.CompanyID = 44042
+  ORDER BY tblContacts.Gone DESC, 
+           CASE 
+               WHEN firstname IS NULL THEN ISNULL(Initials, '')
+               ELSE firstname
+           END + ' ' + ISNULL(Surname, '');
+  `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+  router.route("/andNewOpportunitiesCountry").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT DISTINCT tblEnquiries.County
+        FROM tblEnquiries
+        WHERE tblEnquiries.County IS NOT NULL
+            AND tblEnquiries.County <> ''
+            AND ISNUMERIC(SUBSTRING(tblEnquiries.County, 2, 1)) = 0
+            AND ISNUMERIC(SUBSTRING(tblEnquiries.County, 3, 1)) = 0
+        ORDER BY tblEnquiries.County;
+        `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+
 module.exports = router;
