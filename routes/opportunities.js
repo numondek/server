@@ -208,5 +208,188 @@ ORDER BY qryOpportunitiesFull.EnquiryID DESC;`)
   });
 
 
+  router.route("/andNewOpportunitiesHistory").post(async (req, res) => {
+    let EnquiryID = req.body['EnquiryID'];
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT *
+      FROM tblHistory
+      WHERE tblHistory.EnquiryID = ${EnquiryID} 
+      ORDER BY ISNULL(InteractionDate, EventDate) DESC;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+  router.route("/andOpportunities").post(async (req, res) => {
+    let EnquiryID = req.body['EnquiryID'];
+    let EnquiryNo = req.body['EnquiryNo'];
+    let EnqName = req.body['EnqName'];
+    let Address = req.body['Address'];
+    let Address2 = req.body['Address'];
+    let Town = req.body['Town'];
+    let County = req.body['County'];
+    let PostCode = req.body['PostCode'];
+    let DivisionID = req.body['DivisionID'];
+    let PileTypeID = req.body['PileTypeID'];
+    let PileNumbers = req.body['PileNumbers'];
+    let PileDiam = req.body['PileDiam'];
+    let PileMaxDepth = req.body['PileMaxDepth'];
+    let NextChaseDate = req.body['NextChaseDate'];
+    let NextChaseBy = req.body['NextChaseBy'];
+    let NextChaseNotes = req.body['NextChaseNotes'];
+    let Notes = req.body['Notes'];
+    let Saved = req.body['Saved'];
+    let Target = req.body['Target'];
+    let PriorityID = req.body['PriorityID'];
+    let ExpStartDate = req.body['ExpStartDate'];
+    let SourceID = req.body['SourceID'];
+    let M_Industry = req.body['M_Industry'];
+    let M_Finance = req.body['M_Finance'];
+    let M_Region = req.body['M_Region'];
+    let M_Market = req.body['M_Market'];
+    let FolderPath = req.body['FolderPath'];
+    let OppStartDate = req.body['OppStartDate'];
+    let OppAddedDate = req.body['OppAddedDate'];
+    let OppAddedBy = req.body['OppAddedBy'];
+    let OppCreated = req.body['OppCreated'];
+    let OppExpiry = req.body['OppExpiry'];
+    let OppStatusID = req.body['OppStatusID'];
+    let OppManagerID = req.body['OppManagerID'];
+    let OppSourceID = req.body['OppSourceID'];
+    let OppValue = req.body['OppValue'];
+    let OppNotes = req.body['OppNotes'];
+    let OppWon = req.body['OppWon'];
+    let OppWonDate = req.body['OppWonDate'];
+    let OppWonBy = req.body['OppWonBy'];
+    let OppWonNotes = req.body['OppWonNotes'];
+    let OppDead = req.body['OppDead'];
+    let OppDeadDate = req.body['OppDeadDate'];
+    let OppDeadBy = req.body['OppDeadBy'];
+    let OppDeadNotes = req.body['OppDeadNotes'];
+    let AddedDate = req.body['AddedDate'];
+    let AddedBy = req.body['AddedBy'];
+    
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`INSERT INTO [qryOpportunity] (
+        [EnquiryID],
+        [EnquiryNo],
+        [EnqName],
+        [Address],
+        [Address2],
+        [Town],
+        [County],
+        [PostCode],
+        [DivisionID],
+        [PileTypeID],
+        [PileNumbers],
+        [PileDiam],
+        [PileMaxDepth],
+        [NextChaseDate],
+        [NextChaseBy],
+        [NextChaseNotes],
+        [Notes],
+        [Saved],
+        [Target],
+        [PriorityID],
+        [ExpStartDate],
+        [SourceID],
+        [M_Industry],
+        [M_Finance],
+        [M_Region],
+        [M_Market],
+        [FolderPath],
+        [OppStartDate],
+        [OppAddedDate],
+        [OppAddedBy],
+        [OppCreated],
+        [OppExpiry],
+        [OppStatusID],
+        [OppManagerID],
+        [OppSourceID],
+        [OppValue],
+        [OppNotes],
+        [OppWon],
+        [OppWonDate],
+        [OppWonBy],
+        [OppWonNotes],
+        [OppDead],
+        [OppDeadDate],
+        [OppDeadBy],
+        [OppDeadNotes],
+        [AddedDate],
+        [AddedBy]
+    )
+    VALUES (
+        ${EnquiryID},
+        ${EnquiryNo},
+        ${EnqName},
+        ${Address},
+        ${Address2},
+        ${Town},
+        ${County},
+        ${PostCode},
+        ${DivisionID},
+        ${PileTypeID},
+        ${PileNumbers},
+        ${PileDiam},
+        ${PileMaxDepth},
+        ${NextChaseDate},
+        ${NextChaseBy},
+        ${NextChaseNotes},
+        ${Notes},
+        ${Saved},
+        ${Target},
+        ${PriorityID},
+        ${ExpStartDate},
+        ${SourceID},
+        ${M_Industry},
+        ${M_Finance},
+        ${M_Region},
+        ${M_Market},
+        ${FolderPath},
+        ${OppStartDate},
+        ${OppAddedDate},
+        ${OppAddedBy},
+        ${OppCreated},
+        ${OppExpiry},
+        ${OppStatusID},
+        ${OppManagerID},
+        ${OppSourceID},
+        ${OppValue},
+        ${OppNotes},
+        ${OppWon},
+        ${OppWonDate},
+        ${OppWonBy},
+        ${OppWonNotes},
+        ${OppDead},
+        ${OppDeadDate},
+        ${OppDeadBy},
+        ${OppDeadNotes},
+        ${AddedDate},
+        ${AddedBy})
+    `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+
 
 module.exports = router;
