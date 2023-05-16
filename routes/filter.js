@@ -344,6 +344,39 @@ router.route("/enquiryfilter").post(async (req, res) => {
       });
     }
   });
+  router.route("/sector").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblSector.Sector, tblSector.SectorID
+      FROM tblSector;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/plotType").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblPlotType.PlotType, tblPlotType.PlotTypeID
+      FROM tblPlotType;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
 
 
 module.exports = router;

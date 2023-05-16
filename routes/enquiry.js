@@ -1146,4 +1146,49 @@ router.route("/itemType").get(async (req, res) => {
   }
 });
 
+
+router.route("/estimator").get(async (req, res) => {
+  try {
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT DISTINCT
+    FirstName + ' ' + Surname AS EngineerName,
+    tblEmployees.EmployeeID,
+    tblEmployees.WinLogin,
+    tblEmployees.EmailAddress,
+    tblEmployees.Dormant
+  FROM tblEmployees
+  WHERE ISNULL([OfficeYN], 0) = 1
+    AND tblEmployees.[FirstName] IS NOT NULL
+  ORDER BY tblEmployees.Dormant DESC, FirstName + ' ' + Surname;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/rigPriced").get(async (req, res) => {
+  try {
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT tblPileRigs.RigType, tblPileRigs.RigNo, tblPileRigs.RigTypeID, IIF([Obsolete] = 0, 'N', 'Y') AS Old, tblPileRigs.RigID
+    FROM tblPileRigs
+    WHERE tblPileRigs.ClassID = 1 AND tblPileRigs.HireRig = 0
+    ORDER BY IIF([Obsolete] = 0, 'N', 'Y'), tblPileRigs.RigType;
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
 module.exports = router;
