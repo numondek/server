@@ -379,4 +379,24 @@ router.route("/enquiryfilter").post(async (req, res) => {
   });
 
 
+  router.route("/rigTypes").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT qryRigTypes.Type, qryRigTypes.RigType, qryRigTypes.NoOfRigs
+      FROM qryRigTypes
+      WHERE qryRigTypes.Obsolete = 0
+      ORDER BY qryRigTypes.Type;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
 module.exports = router;
