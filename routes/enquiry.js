@@ -91,11 +91,12 @@ router.route("/enquiryView").post(async (req, res) => {
       }
     }
 
-    var time;
+    let time;
 
     for (const [date, value] of dates) {
       if (dateSelected == date) {
         time = `${value} BETWEEN '${startDate}' AND '${endDate}' AND `;
+        break;
       }
     }
     
@@ -104,7 +105,7 @@ router.route("/enquiryView").post(async (req, res) => {
 
     const offset = (page - 1) * size;
     const whereClause = filters.length > 0 ? `WHERE ${dateSelected == null ? '' : time} ${filters.join(' AND ')} ` : '';
-    console.log(whereClause);
+    // console.log(whereClause);
 
     const result = await con.query(
       `SELECT COUNT(*) as TotalRows
@@ -132,6 +133,7 @@ router.route("/enquiryView").post(async (req, res) => {
 });
 
 
+
 router.route("/enquiryHistory").get(async (req, res) => {
   try {
     const con = await sql.connect(db);
@@ -156,6 +158,26 @@ router.route("/enquiryPA").get(async (req, res) => {
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT *
     FROM qryEnquiriesForemen
+    ORDER BY qryEnquiriesForemen.StartDate;    
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/enquiryPA").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
+    FROM qryEnquiriesForemen
+    WHERE EnquiryID = ${EnquiryID}
     ORDER BY qryEnquiriesForemen.StartDate;    
 `)
     res.status(200).json({
@@ -231,6 +253,25 @@ router.route("/detail").post(async (req, res) => {
     })
   });
 
+});
+
+
+router.route("/addNewInfo").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT * , Right(EnquiryNo, Len(EnquiryNo) - 1) AS NumberOnly FROM tblEnquiries
+    WHERE tblEnquiries.EnquiryID = ${EnquiryID} AND IsNull(tblEnquiries.Deleted, 0) = 0
+    ORDER BY tblEnquiries.EnquiryNo DESC;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
 });
 
 
@@ -391,7 +432,7 @@ router.route("/contract").get(async (req, res) => {
 
 });
 
-router.route("/cMcontract").get(async (req, res) => {
+router.route("/cMcontract1").get(async (req, res) => {
   try {
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT DISTINCT CONCAT(FirstName, ' ', Surname) AS EngineerName,

@@ -399,4 +399,87 @@ router.route("/enquiryfilter").post(async (req, res) => {
   });
 
 
+  router.route("/acceptedBy").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT FirstName + ' ' + Surname AS EngineerName, tblEmployees.WinLogin
+      FROM tblEmployees
+      WHERE OfficeYN = 1 AND (FirstName + ' ' + Surname) IS NOT NULL
+      ORDER BY tblEmployees.Dormant DESC, EngineerName;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/foreman").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT DISTINCT FirstName + ' ' + Surname AS ForemanName, tblEmployees.EmployeeID, tblEmployees.Dormant
+      FROM tblEmployees
+      WHERE OfficeYN = 1 AND (FirstName + ' ' + Surname) IS NOT NULL
+      ORDER BY tblEmployees.Dormant DESC, ForemanName;`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
+  router.route("/tblPileCategories").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblPileCategories.PileCategory, tblPileCategories.PileCategoryID
+      FROM tblPileCategories
+      ORDER BY tblPileCategories.ListOrder, tblPileCategories.PileCategory;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/enquiriesSearch").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT qryEnquiriesMainTender.EnquiryNo, ISNULL(Address, '') + 
+      CASE WHEN Town IS NULL THEN '' ELSE ', ' + Town END AS JobAddress,
+      qryEnquiriesMainTender.EnquiryID,
+      CASE WHEN ISNULL(Won, 0) = -1 THEN 'Contract'
+           WHEN ISNULL(Lost, 0) = -1 THEN 'Lost'
+           ELSE 'Enquiry' + ' - ' + ISNULL(TenderTypeShort, '')
+      END AS Status,
+            qryEnquiriesMainTender.DivisionID
+      FROM qryEnquiriesMainTender
+      WHERE qryEnquiriesMainTender.EnquiryNo <> ''
+      ORDER BY qryEnquiriesMainTender.EnquiryID DESC;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
 module.exports = router;
