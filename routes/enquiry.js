@@ -1232,4 +1232,58 @@ router.route("/rigPriced").get(async (req, res) => {
   }
 });
 
+router.route("/concreteDeliveries").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT tblConcDetail.*, tblPileLogs.EnquiryID, tblPileLogs.RigNo, tblPileLogs.LogDate
+    FROM tblConcDetail
+    INNER JOIN tblPileLogs ON tblConcDetail.PileLogID = tblPileLogs.PileLogID
+    WHERE tblPileLogs.EnquiryID = ${EnquiryID}
+    ORDER BY tblPileLogs.LogDate DESC;
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/externalOperatives").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT
+    a.*,
+    tblPileLogs.LogDate,
+    tblPileLogs.EnquiryID,
+    tblPileLogs.RigNo,
+    date_calendar.first_day_in_week + 1 AS WkComm,
+    CASE WHEN ISNULL(a.WorkHours, 0) > ISNULL(tblEmployees.StandardHours, 0) THEN tblEmployees.StandardHours ELSE a.WorkHours END AS BasicHours2,
+    CASE WHEN ISNULL(a.WorkHours, 0) > ISNULL(tblEmployees.StandardHours, 0) THEN ISNULL(a.WorkHours, 0) - ISNULL(tblEmployees.StandardHours, 0) ELSE 0 END AS OvertimeHours2
+FROM
+    (tblPileLogPeople AS a
+    INNER JOIN tblPileLogs ON a.PileLogID = tblPileLogs.PileLogID)
+    INNER JOIN date_calendar ON tblPileLogs.LogDate = date_calendar.calendar_date
+    INNER JOIN tblEmployees ON a.EmployeeID = tblEmployees.EmployeeID
+WHERE
+    a.EmployeeID = 8271 AND tblPileLogs.EnquiryID = ${EnquiryID}
+ORDER BY
+    tblPileLogs.LogDate DESC;
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
 module.exports = router;
