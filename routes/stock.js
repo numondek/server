@@ -183,9 +183,32 @@ router.route("/stockitems").get( async(req, res) => {
       });
     }
   });
+  // tblStockOrderDetails.EnquiryID = ${EnquiryID}
 
-
-
+  router.route("/addNewContractStockOrder").get(async (req, res) => {
+    try {
+      let EnquiryID = req.body['EnquiryID'];
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblStockOrder.StockOrderID, tblStockOrder.DeliveryDate, tblStockOrder.RequestedByID, tblStockOrder.JobID, tblStockOrder.SupplierID, tblStockOrder.DivisionID, tblStockOrder.Notes, tblStockOrder.OrderTypeID, tblStockOrder.RaisedDate, tblStockOrderDetails.StockOrderDetID, tblStockOrderDetails.StockOrderID, tblStockOrderDetails.StockItemID, tblStockOrderDetails.PreEnterQuantity, tblStockOrderDetails.EnteredQuantity, tblStockOrderDetails.Quantity, tblStockOrderDetails.Unit, tblStockOrderDetails.Price, tblStockOrderDetails.AllocatedToID, tblStockOrderDetails.Notes, tblStockOrder.RaisedBy, FORMAT(ISNULL(Quantity * [Price], 0), 'C') AS [Value]
+      FROM tblStockOrderDetails
+      INNER JOIN tblStockOrder ON tblStockOrderDetails.StockOrderID = tblStockOrder.StockOrderID
+      LEFT JOIN tblStockItems ON tblStockOrderDetails.StockItemID = tblStockItems.ID
+      LEFT JOIN tblStockType ON tblStockType.StockTypeID = tblStockItems.StockTypeID
+      WHERE tblStockOrder.OrderTypeID = 1 
+        AND ISNULL(tblStockOrder.Cancelled, 0) = 0
+        AND ISNULL(tblStockOrderDetails.Cancelled, 0) = 0
+        AND ISNULL(tblStockType.ShowInCosts, 0) = -1;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
 
   
 

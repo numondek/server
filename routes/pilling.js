@@ -264,6 +264,28 @@ router.route("/weekM").get( async(req, res) => {
 });
 
 
+router.route("/addNewPillingGrouping").post(async (req, res) => {
+  try {
+    
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
+    FROM qryPileGroupingsInput
+    WHERE qryPileGroupingsInput.EnquiryID = ${EnquiryID}
+    ORDER BY qryPileGroupingsInput.StartDate;
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
 
 
 
