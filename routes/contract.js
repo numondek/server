@@ -264,15 +264,28 @@ router.route("/coststructure").get( async(req, res) => {
             console.log(err);
             res.status(500).json({ status: false });
         } else {
-            // console.log(record.recordsets[0]);
             var data = record.recordsets[0];
-            // console.log('data[0]');
             res.status(200).json({data});
         }
         
       })  
     });
      
+  });
+  router.route("/desgin").post(async (req, res) => {
+    try {
+      let EnquiryID = req.body['EnquiryID'];
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblDesignTime.* FROM tblDesignTime WHERE tblDesignTime.EnquiryID = ${EnquiryID};`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
   });
 
 
@@ -288,9 +301,7 @@ router.route("/coststructure").get( async(req, res) => {
             console.log(err);
             res.status(500).json({ status: false });
         } else {
-            // console.log(record.recordsets[0]);
             var data = record.recordsets[0];
-            // console.log('data[0]');
             res.status(200).json({data});
         }
         
@@ -298,6 +309,25 @@ router.route("/coststructure").get( async(req, res) => {
     });
      
   });
+
+  router.route("/charge").post(async (req, res) => {
+    try {
+      let EnquiryID = req.body['EnquiryID'];
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT * FROM tblContraCharge WHERE tblContraCharge.EnquiryID = ${EnquiryID};`)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+  
+
+
 
 
 
@@ -450,6 +480,7 @@ router.route("/coststructure").get( async(req, res) => {
      
   })
 
+ 
 
 
 

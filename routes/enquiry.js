@@ -1286,4 +1286,69 @@ ORDER BY
   }
 });
 
+router.route("/valuationSummary").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
+    FROM qryValuationSummary
+    WHERE qryValuationSummary.EnquiryID = ${EnquiryID};
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/standingTimeAnalysis").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT 
+    tblStandingTimeAnalysis.*, 
+    AnalysisHours * AnalysisRate AS AnalysisCost
+FROM 
+    tblStandingTimeAnalysis
+WHERE 
+    ISNULL(tblStandingTimeAnalysis.StandingTime, 0) <> 0 AND tblStandingTimeAnalysis.EnquiryID = ${EnquiryID}
+ORDER BY 
+    tblStandingTimeAnalysis.LogDate;
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/subcontract").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
+    FROM tblSubbieOrder      
+    WHERE tblSubbieOrder.EnquiryID = ${EnquiryID};
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+
 module.exports = router;
