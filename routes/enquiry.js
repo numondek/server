@@ -1350,5 +1350,113 @@ router.route("/subcontract").post(async (req, res) => {
 });
 
 
+router.route("/saleValuation").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
+    FROM qryValSched
+    WHERE qryValSched.[DeleteYN] = 0 AND qryValSched.EnquiryID = ${EnquiryID}
+    ORDER BY qryValSched.DeleteYN, qryValSched.ValSchedID;
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/loadCases").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT
+    tblPileCages.ID,
+    tblPileCages.EnquiryID,
+    tblPileCages.CageRef,
+    tblPileCages.Cage1Count,
+    tblPileCages.Cage1Diam,
+    tblPileCages.Cage1Grade,
+    tblPileCages.Cage1Length,
+    tblPileCages.Cage1LinkDiam,
+    tblPileCages.Cage1LinkGrade,
+    tblPileCages.Cage1LinkPitch,
+    tblPileCages.Cage1LinkTypeID,
+    tblPileCages.Cage2Count,
+    tblPileCages.Cage2Diam,
+    tblPileCages.Cage2Grade,
+    tblPileCages.Cage2Length,
+    tblPileCages.Cage2LinkDiam,
+    tblPileCages.Cage2LinkGrade,
+    tblPileCages.Cage2LinkPitch,
+    tblPileCages.Cage2LinkTypeID,
+    tblPileCages.SWLMax,
+    tblPileCages.SWLMin,
+    tblPileCages.TensionMax,
+    tblPileCages.TensionMin,
+    tblPileCages.ShearMax,
+    tblPileCages.ShearMin,
+    tblPileCages.ConcStrength,
+    COUNT(tblPileSched.PileNo) AS CountPiles,
+    ROUND(AVG(tblPileSched.Length), 1) AS AverageLength,
+    tblPileCages.PileDiam,
+    tblPileCages.PilesPerDay,
+    tblPileCages.DefaultRate
+FROM
+    tblPileCages
+INNER JOIN
+    tblPileSched ON tblPileCages.EnquiryID = tblPileSched.EnquiryID
+    AND tblPileCages.CageRef = tblPileSched.CageType
+    AND tblPileCages.PileDiam = tblPileSched.Diameter
+    WHERE tblPileCages.EnquiryID = ${EnquiryID}
+GROUP BY
+    tblPileCages.ID,
+    tblPileCages.EnquiryID,
+    tblPileCages.CageRef,
+    tblPileCages.Cage1Count,
+    tblPileCages.Cage1Diam,
+    tblPileCages.Cage1Grade,
+    tblPileCages.Cage1Length,
+    tblPileCages.Cage1LinkDiam,
+    tblPileCages.Cage1LinkGrade,
+    tblPileCages.Cage1LinkPitch,
+    tblPileCages.Cage1LinkTypeID,
+    tblPileCages.Cage2Count,
+    tblPileCages.Cage2Diam,
+    tblPileCages.Cage2Grade,
+    tblPileCages.Cage2Length,
+    tblPileCages.Cage2LinkDiam,
+    tblPileCages.Cage2LinkGrade,
+    tblPileCages.Cage2LinkPitch,
+    tblPileCages.Cage2LinkTypeID,
+    tblPileCages.SWLMax,
+    tblPileCages.SWLMin,
+    tblPileCages.TensionMax,
+    tblPileCages.TensionMin,
+    tblPileCages.ShearMax,
+    tblPileCages.ShearMin,
+    tblPileCages.ConcStrength,
+    tblPileCages.PileDiam,
+    tblPileCages.PilesPerDay,
+    tblPileCages.DefaultRate
+;
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
 
 module.exports = router;
