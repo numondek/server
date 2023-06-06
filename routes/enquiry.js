@@ -1491,6 +1491,91 @@ FROM
 
 
 
+router.route("/jobLogByPhase").post(async (req, res) => {
+  try {
+    let ContractNo = req.body['ContractNo'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 100 qryPileSchedLogDetailsJob.ContractNo,
+    qryPileSchedLogDetailsJob.EnqName,
+    qryPileSchedLogDetailsJob.FullAddress,
+    qryPileSchedLogDetailsJob.RigNo,
+    qryPileSchedLogDetailsJob.LogDate,
+    qryPileSchedLogDetailsJob.Notes,
+    qryPileSchedLogDetailsJob.PileNo,
+    qryPileSchedLogDetailsJob.AreaRef,
+    qryPileSchedLogDetailsJob.Diameter,
+    CAST(qryPileSchedLogDetailsJob.Length AS FLOAT) AS Length,
+    CAST(ISNULL(qryPileSchedLogDetailsJob.PileLength, 0) AS FLOAT) AS PileLength,
+    qryPileSchedLogDetailsJob.Status,
+    qryPileSchedLogDetailsJob.ReportDate,
+    qryPileSchedLogDetailsJob.ReportNo,
+    qryPileSchedLogDetailsJob.PileOK,
+    qryPileSchedLogDetailsJob.TestStatus
+    FROM
+    qryPileSchedLogDetailsJob
+    WHERE qryPileSchedLogDetailsJob.ContractNo = ${ContractNo};`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/jobLogByCage").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 qryPileSchedLogDetailsJob.ContractNo,
+    qryPileSchedLogDetailsJob.EnqName,
+    qryPileSchedLogDetailsJob.FullAddress,
+    qryPileSchedLogDetailsJob.RigNo,
+    qryPileSchedLogDetailsJob.LogDate,
+    qryPileSchedLogDetailsJob.Notes,
+    qryPileSchedLogDetailsJob.PileNo,
+    qryPileSchedLogDetailsJob.AreaRef,
+    qryPileSchedLogDetailsJob.Diameter,
+    CAST(qryPileSchedLogDetailsJob.Length AS FLOAT) AS Length,
+    CAST(ISNULL(qryPileSchedLogDetailsJob.PileLength, 0) AS FLOAT) AS PileLength,
+    qryPileSchedLogDetailsJob.Status,
+    qryPileSchedLogDetailsJob.CageType
+    FROM
+    qryPileSchedLogDetailsJob;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/scheduleHistory").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 *
+    FROM qryPileSchedAll;;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+
 
 
 
