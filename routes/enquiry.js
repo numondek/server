@@ -1356,7 +1356,7 @@ router.route("/saleValuation").post(async (req, res) => {
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT *
     FROM qryValSched
-    WHERE qryValSched.[DeleteYN] = 0 AND qryValSched.EnquiryID = ${EnquiryID}
+    WHERE qryValSched.[DeleteYN] = 0 AND qryValSched.EnqID = ${EnquiryID}
     ORDER BY qryValSched.DeleteYN, qryValSched.ValSchedID;
     `)
     res.status(200).json({
@@ -1375,8 +1375,7 @@ router.route("/loadCases").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT
-    tblPileCages.ID,
+    const result = await con.request().query(`SELECT tblPileCages.ID,
     tblPileCages.EnquiryID,
     tblPileCages.CageRef,
     tblPileCages.Cage1Count,
@@ -1456,6 +1455,42 @@ GROUP BY
     });
   }
 });
+
+router.route("/jobLogByDate").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT qryPileLogDetailsFull2.RigNo,
+    qryPileLogDetailsFull2.LogDate,
+    qryPileLogDetailsFull2.ContractNo,
+    qryPileLogDetailsFull2.EnqName,
+    qryPileLogDetailsFull2.FullAddress,
+    qryPileLogDetailsFull2.ConcVolume,
+    qryPileLogDetailsFull2.Notes,
+    qryPileLogDetailsFull2.PileNo,
+    CAST(ISNULL(qryPileLogDetailsFull2.PileLength, 0) AS FLOAT) AS PileLength,
+    qryPileLogDetailsFull2.ConcRateCont,
+    qryPileLogDetailsFull2.ConcTheory,
+    CAST(ISNULL(qryPileLogDetailsFull2.Length, 0) AS FLOAT) AS Length,
+    qryPileLogDetailsFull2.Diameter,
+    CAST(qryPileLogDetailsFull2.SteelWeight AS FLOAT) AS SteelWeight,
+    qryPileLogDetailsFull2.Reinforcement
+FROM
+    qryPileLogDetailsFull2
+    WHERE qryPileLogDetailsFull2.EnquiryID = ${EnquiryID};`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+
 
 
 
