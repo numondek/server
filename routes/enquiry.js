@@ -1616,7 +1616,7 @@ router.route("/enquiryTender").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10
+    const result = await con.request().query(`SELECT 
     CONVERT(VARCHAR, tblEnquiryTenders.EnquiryID) + '-' + CONVERT(VARCHAR, tblEnquiryTenders.CompanyID) AS EnqCo,
     ROUND(tblEnquiryTenders.TenderValue * tblEnquiryTenders.GrossMargin / 100, 2) AS GrossProfit,
     ROUND(tblEnquiryTenders.TenderValue - (tblEnquiryTenders.TenderValue * tblEnquiryTenders.GrossMargin / 100), 2) AS TenderCost,
