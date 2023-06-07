@@ -1561,8 +1561,8 @@ router.route("/scheduleHistory").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 *
-    FROM qryPileSchedAll;;`)
+    const result = await con.request().query(`SELECT TOP 100 *
+    FROM qryPileSchedAll;`)
     res.status(200).json({
       data: result.recordsets[0]
     });
@@ -1573,6 +1573,71 @@ router.route("/scheduleHistory").post(async (req, res) => {
     });
   }
 });
+
+
+router.route("/costPlanningSummary").get(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT 
+    CASE 
+        WHEN CostPlan = -1 THEN 'Cost Plan'
+        WHEN VariationID IS NULL THEN 'Startup'
+        ELSE 'Variation'
+    END AS StartupType,
+    *
+FROM tblStartup
+WHERE ISNULL(Cancel, 0) = 0
+ORDER BY 
+    CASE 
+        WHEN VariationID IS NULL THEN 
+            CASE 
+                WHEN CostPlan = -1 THEN StartupParentID
+                ELSE StartupID
+            END
+        ELSE StartupParentID
+    END,
+    tblStartup.StartupID,
+    tblStartup.StartupDate;
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/enquiryTender").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10
+    CONVERT(VARCHAR, tblEnquiryTenders.EnquiryID) + '-' + CONVERT(VARCHAR, tblEnquiryTenders.CompanyID) AS EnqCo,
+    ROUND(tblEnquiryTenders.TenderValue * tblEnquiryTenders.GrossMargin / 100, 2) AS GrossProfit,
+    ROUND(tblEnquiryTenders.TenderValue - (tblEnquiryTenders.TenderValue * tblEnquiryTenders.GrossMargin / 100), 2) AS TenderCost,
+    tblEnquiryTenders.*,
+    RIGHT(tblEnquiryTenders.AddedBy, LEN(tblEnquiryTenders.AddedBy) - CHARINDEX('\', tblEnquiryTenders.AddedBy)) AS AddedByTender
+FROM tblEnquiryTenders
+WHERE tblEnquiryTenders.Deleted = 0 AND tblEnquiryTenders.EnquiryID = ${EnquiryID}
+ORDER BY tblEnquiryTenders.MainTender DESC, tblEnquiryTenders.Deleted, tblEnquiryTenders.TenderNo;
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
 
 
 
