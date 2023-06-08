@@ -154,8 +154,8 @@ ORDER BY qryOpportunitiesFull.EnquiryID DESC;`)
       const con = await sql.connect(db);
       const result = await con.request().query(`SELECT DISTINCT 
       CASE 
-          WHEN firstname IS NULL THEN ISNULL(Initials, '')
-          ELSE firstname
+          WHEN firstname IS NULL THEN ISNULL(Initials, '') 
+          ELSE firstname 
       END + ' ' + ISNULL(Surname, '') AS ContactFullName,
       Telephone + CASE 
                       WHEN Extension IS NULL THEN ''
@@ -165,13 +165,14 @@ ORDER BY qryOpportunitiesFull.EnquiryID DESC;`)
       tblContacts.Email,
       tblContacts.ContactID,
       tblContacts.Gone
-  FROM tblContacts
-  WHERE tblContacts.CompanyID = 44042
-  ORDER BY tblContacts.Gone DESC, 
-           CASE 
-               WHEN firstname IS NULL THEN ISNULL(Initials, '')
-               ELSE firstname
-           END + ' ' + ISNULL(Surname, '');
+  FROM 
+      tblContacts
+  ORDER BY 
+      tblContacts.Gone DESC,
+      CASE 
+          WHEN firstname IS NULL THEN ISNULL(Initials, '') 
+          ELSE firstname 
+      END + ' ' + ISNULL(Surname, '');
   `)
       res.status(200).json({
         data: result.recordsets[0]

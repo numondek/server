@@ -1350,13 +1350,13 @@ router.route("/subcontract").post(async (req, res) => {
 });
 
 
-router.route("/saleValuation").post(async (req, res) => {
+router.route("/saleValuation").get(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT *
+    const result = await con.request().query(`SELECT TOP 10 *
     FROM qryValSched
-    WHERE qryValSched.[DeleteYN] = 0 AND qryValSched.EnqID = ${EnquiryID}
+    WHERE qryValSched.[DeleteYN] = 0 
     ORDER BY qryValSched.DeleteYN, qryValSched.ValSchedID;
     `)
     res.status(200).json({
@@ -1513,7 +1513,7 @@ router.route("/jobLogByPhase").post(async (req, res) => {
     qryPileSchedLogDetailsJob.TestStatus
     FROM
     qryPileSchedLogDetailsJob
-    WHERE qryPileSchedLogDetailsJob.ContractNo = ${ContractNo};`)
+   ;`)
     res.status(200).json({
       data: result.recordsets[0]
     });
@@ -1575,7 +1575,7 @@ router.route("/scheduleHistory").post(async (req, res) => {
 });
 
 
-router.route("/costPlanningSummary").get(async (req, res) => {
+router.route("/costPlanningSummary").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
     const con = await sql.connect(db);
@@ -1587,7 +1587,7 @@ router.route("/costPlanningSummary").get(async (req, res) => {
     END AS StartupType,
     *
 FROM tblStartup
-WHERE ISNULL(Cancel, 0) = 0
+WHERE ISNULL(Cancel, 0) = 0 AND tblStartup.EnquiryID = ${EnquiryID}
 ORDER BY 
     CASE 
         WHEN VariationID IS NULL THEN 
