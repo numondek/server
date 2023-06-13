@@ -187,11 +187,11 @@ router.route("/stockitems").get( async(req, res) => {
   });
   // tblStockOrderDetails.EnquiryID = ${EnquiryID}
 
-  router.route("/addNewContractStockOrder").get(async (req, res) => {
+  router.route("/addNewContractStockOrder").post(async (req, res) => {
     try {
       let EnquiryID = req.body['EnquiryID'];
       const con = await sql.connect(db);
-      const result = await con.request().query(`SELECT tblStockOrder.StockOrderID, tblStockOrder.DeliveryDate, tblStockOrder.RequestedByID, tblStockOrder.JobID, tblStockOrder.SupplierID, tblStockOrder.DivisionID, tblStockOrder.Notes, tblStockOrder.OrderTypeID, tblStockOrder.RaisedDate, tblStockOrderDetails.StockOrderDetID, tblStockOrderDetails.StockOrderID, tblStockOrderDetails.StockItemID, tblStockOrderDetails.PreEnterQuantity, tblStockOrderDetails.EnteredQuantity, tblStockOrderDetails.Quantity, tblStockOrderDetails.Unit, tblStockOrderDetails.Price, tblStockOrderDetails.AllocatedToID, tblStockOrderDetails.Notes, tblStockOrder.RaisedBy, FORMAT(ISNULL(Quantity * [Price], 0), 'C') AS [Value], tblAllocatedTo.FirstName+' '+tblAllocatedTo.Surname AS AllocatedTo, tblEmployees.FirstName+' '+tblEmployees.Surname AS RequestedBy, 
+      const result = await con.request().query(`SELECT TOP 100 tblStockOrder.StockOrderID, tblStockOrder.DeliveryDate, tblStockOrder.RequestedByID, tblStockOrder.JobID, tblStockOrder.SupplierID, tblStockOrder.DivisionID, tblStockOrder.Notes, tblStockOrder.OrderTypeID, tblStockOrder.RaisedDate, tblStockOrderDetails.StockOrderDetID, tblStockOrderDetails.StockOrderID, tblStockOrderDetails.StockItemID, tblStockOrderDetails.PreEnterQuantity, tblStockOrderDetails.EnteredQuantity, tblStockOrderDetails.Quantity, tblStockOrderDetails.Unit, tblStockOrderDetails.Price, tblStockOrderDetails.AllocatedToID, tblStockOrderDetails.Notes, tblStockOrder.RaisedBy, FORMAT(ISNULL(Quantity * [Price], 0), 'C') AS [Value], tblAllocatedTo.FirstName+' '+tblAllocatedTo.Surname AS AllocatedTo, tblEmployees.FirstName+' '+tblEmployees.Surname AS RequestedBy, 
       itemID.DescriptShort + IIF(tblStockItems.[Size] IS NULL, '', ' - ' + tblStockItems.[Size]) AS Description, tblStockOrder.Notes AS Notes2
       FROM tblStockOrderDetails
       INNER JOIN tblStockOrder ON tblStockOrderDetails.StockOrderID = tblStockOrder.StockOrderID

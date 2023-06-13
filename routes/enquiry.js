@@ -1639,7 +1639,7 @@ ORDER BY tblEnquiryTenders.MainTender DESC, tblEnquiryTenders.Deleted, tblEnquir
 
 router.route("/concreteTotal").get(async (req, res) => {
   try {
-    let EnquiryID = req.body['EnquiryID'];
+   
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT TOP 10 *
     FROM tblPileLogs;
@@ -1654,6 +1654,149 @@ router.route("/concreteTotal").get(async (req, res) => {
     });
   }
 });
+
+
+
+
+router.route("/commercialLog").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *, tblLogType.LogType AS LogTypeInfo
+    FROM tblLog
+    LEFT JOIN tblLogType ON tblLog.LogTypeID = tblLogType.LogTypeID
+    WHERE ISNULL([Cancel], 0) = 0 AND tblLog.EnquiryID = ${EnquiryID}
+    ORDER BY tblLog.LogID;
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/commercialLogSub").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT tblLogDetail.*, tblLogItem.Description
+    FROM tblLogItem
+    INNER JOIN tblLogDetail ON tblLogItem.LogItemID = tblLogDetail.LogItemID
+    WHERE tblLogItem.EnquiryID = ${EnquiryID}
+    ORDER BY tblLogItem.ListOrder;
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/commercialLogHistory").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT tblLogHistory.*
+    FROM tblLogHistory
+    WHERE tblLogHistory.EnquiryID = ${EnquiryID}
+    ORDER BY tblLogHistory.CommentDate DESC;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+
+
+
+
+router.route("/jobContact").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT 
+    tblJobContacts.JobContactID,
+    tblJobContacts.EnquiryID,
+    tblJobContacts.ContactCoID,
+    tblJobContacts.ContactID,
+    tblJobContacts.ContactTitle,
+    ISNULL(tblContacts.FirstName, ISNULL(tblContacts.Initials, '')) + ' ' + ISNULL(tblContacts.Surname, '') AS FullName,
+	tblContacts.ContactID, tblContacts.Telephone, tblContacts.Mobile, tblContacts.Email,
+    tblCompanies.CompanyName + '-' + ISNULL(tblCompanies.OfficeName, '') AS Company,
+	tblJobContactTypes.ContactType
+FROM 
+    tblJobContacts
+LEFT JOIN 
+    tblContacts ON tblJobContacts.ContactID = tblContacts.ContactID
+LEFT JOIN 
+    tblCompanies ON tblJobContacts.ContactCoID = tblCompanies.CompanyID
+	LEFT JOIN 
+    tblJobContactTypes ON tblJobContacts.ContactTitle = tblJobContactTypes.ContactTypeID
+    WHERE tblJobContacts.EnquiryID = ${EnquiryID};;
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/attendanceWork").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT * 
+    FROM tblContractAttendantWorks LEFT JOIN tblWorksTypes ON tblContractAttendantWorks.WorksTypeID =  tblWorksTypes.ID
+    LEFT JOIN tblWorksBy ON tblContractAttendantWorks.WorksByID =  tblWorksBy.ID
+    WHERE tblContractAttendantWorks.EnquiryID = ${EnquiryID};`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/preContractASUC").post(async (req, res) => {
+  try {
+    const EnquiryID = req.body['EnqiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
+    FROM qryEnquiryASUC
+    WHERE qryEnquiryASUC.EnquiryID = ${EnquiryID};`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
 
 
 
