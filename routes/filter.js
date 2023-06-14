@@ -482,4 +482,24 @@ router.route("/enquiryfilter").post(async (req, res) => {
   });
 
 
+  router.route("/vatCode").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblVATTable.VATCode, tblVATTable.VATRate, tblVATTable.VATNotes
+      FROM tblVATTable
+      ORDER BY tblVATTable.VATCode;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+  
+
+
 module.exports = router;

@@ -1661,6 +1661,7 @@ router.route("/concreteTotal").get(async (req, res) => {
 router.route("/commercialLog").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
+    console.log(req.body);
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT *, tblLogType.LogType AS LogTypeInfo
     FROM tblLog
@@ -1681,12 +1682,13 @@ router.route("/commercialLog").post(async (req, res) => {
 
 router.route("/commercialLogSub").post(async (req, res) => {
   try {
-    let EnquiryID = req.body['EnquiryID'];
+    let LogID = req.body['LogID'];
+    console.log(req.body);
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT tblLogDetail.*, tblLogItem.Description
     FROM tblLogItem
     INNER JOIN tblLogDetail ON tblLogItem.LogItemID = tblLogDetail.LogItemID
-    WHERE tblLogItem.EnquiryID = ${EnquiryID}
+    WHERE tblLogItem.LogID = ${LogID}
     ORDER BY tblLogItem.ListOrder;
     `)
     res.status(200).json({
@@ -1702,11 +1704,12 @@ router.route("/commercialLogSub").post(async (req, res) => {
 
 router.route("/commercialLogHistory").post(async (req, res) => {
   try {
-    let EnquiryID = req.body['EnquiryID'];
+    let LogID = req.body['LogID'];
+    console.log(req.body);
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT tblLogHistory.*
     FROM tblLogHistory
-    WHERE tblLogHistory.EnquiryID = ${EnquiryID}
+    WHERE tblLogHistory.LogID = ${LogID}
     ORDER BY tblLogHistory.CommentDate DESC;`)
     res.status(200).json({
       data: result.recordsets[0]
@@ -1727,6 +1730,7 @@ router.route("/commercialLogHistory").post(async (req, res) => {
 router.route("/jobContact").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
+    console.log(req.body);
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT 
     tblJobContacts.JobContactID,
@@ -1763,6 +1767,7 @@ LEFT JOIN
 router.route("/attendanceWork").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
+    console.log(req.body);
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT * 
     FROM tblContractAttendantWorks LEFT JOIN tblWorksTypes ON tblContractAttendantWorks.WorksTypeID =  tblWorksTypes.ID
@@ -1781,11 +1786,52 @@ router.route("/attendanceWork").post(async (req, res) => {
 
 router.route("/preContractASUC").post(async (req, res) => {
   try {
-    const EnquiryID = req.body['EnqiryID'];
+    const EnquiryID = req.body['EnquiryID'];
+    console.log(req.body);
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT *
     FROM qryEnquiryASUC
     WHERE qryEnquiryASUC.EnquiryID = ${EnquiryID};`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/commercialSub").post(async (req, res) => {
+  try {
+    const EnquiryID = req.body['EnquiryID'];
+    console.log(req.body);
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
+    FROM tblCommercialHistory
+    WHERE tblCommercialHistory.EnquiryID = ${EnquiryID}
+    ORDER BY tblCommercialHistory.CommentDate DESC;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/commercial").post(async (req, res) => {
+  try {
+    const EnquiryID = req.body['EnquiryID'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT  *
+    FROM qryEnquiryCommercial
+    WHERE qryEnquiryCommercial.EnquiryID = ${EnquiryID};
+    `)
     res.status(200).json({
       data: result.recordsets[0]
     });
