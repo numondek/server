@@ -1874,12 +1874,14 @@ FROM (
         qryWorkingTimeBreaks.BreakLength,
         qryWorkingTimeBreaks.BreakHours,
         CONCAT(tblEmployees.FirstName, ' ', ISNULL(tblEmployees.Surname, '')) AS Name,
-        tblWorkingTimeType.TransportType
+        tblWorkingTimeType.TransportType,
+        tblWorkingTimeMode.Mode
     FROM
         tblWorkingTime
         LEFT JOIN qryWorkingTimeBreaks ON tblWorkingTime.ID = qryWorkingTimeBreaks.ID
         LEFT JOIN tblEmployees ON tblWorkingTime.EmployeeID = tblEmployees.EmployeeID
         LEFT JOIN  tblWorkingTimeType ON tblWorkingTime.TypeID =  tblWorkingTimeType.TypeID
+        LEFT JOIN  tblWorkingTimeMode ON tblWorkingTime.ModeID =  tblWorkingTimeMode.ModeID
         
         WHERE tblWorkingTime.EnquiryID = ${EnquiryID}
 ) AS subquery

@@ -309,6 +309,10 @@ router.route("/enquiryfilter").post(async (req, res) => {
     }
   });
 
+
+  
+  
+
   router.route("/oppStatus").get(async (req, res) => {
     try {
       const con = await sql.connect(db);
@@ -417,7 +421,8 @@ router.route("/enquiryfilter").post(async (req, res) => {
       });
     }
   });
-
+ 
+  
   router.route("/foreman").get(async (req, res) => {
     try {
       const con = await sql.connect(db);
