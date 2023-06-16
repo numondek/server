@@ -99,17 +99,12 @@ router.route("/coststructure").get( async(req, res) => {
     
       con.query(`SELECT 
       tblWorkingTime.*, 
-      DATEDIFF(n, tblWorkingTime.TimeIn, DATEADD(hour, IIF(tblWorkingTime.NightShift=-1, 24, 0), tblWorkingTime.TimeOut)) AS WorkMinutes, 
-      IIF(ISNULL(WorkMinutes, 0)=0, CONVERT(INT, FLOOR(WorkMinutes/60.0)), '') AS WorkHr, 
-      WorkMinutes-CONVERT(INT, FLOOR(WorkMinutes/60.0))*60 AS WorkMin, 
-      WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0) AS TotMinutes, 
-      IIF(ISNULL(WorkMinutes, 0)=0, CONVERT(INT, FLOOR((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))/60.0)), '') AS TotHr, 
-      (WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))-CONVERT(INT, FLOOR((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))/60.0))*60 AS TotMin, 
-      FORMAT(WorkHr, '00') + ':' + FORMAT(WorkMin, '00') AS WorkHours, 
-      FORMAT(IIF(ISNULL(WorkMinutes, 0)=0, CONVERT(INT, FLOOR((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))/60.0)), ''), '00') 
-          + ':' 
-          + FORMAT((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))-CONVERT(INT, FLOOR((WorkMinutes+ISNULL(tblWorkingTime.TravelTime, 0))/60.0))*60, '00') AS TotHours, 
-      IIF(WorkMinutes<12*60, 'N', 'Y') AS ShiftNotOK, 
+      DATEDIFF(minute, tblWorkingTime.TimeIn, 
+               DATEADD(hour, IIF(tblWorkingTime.NightShift=-1, 24, 0), tblWorkingTime.TimeOut)) 
+            * 60 AS Total_Minutes, 
+      IIF((DATEDIFF(minute, tblWorkingTime.TimeIn, 
+               DATEADD(hour, IIF(tblWorkingTime.NightShift=-1, 24, 0), tblWorkingTime.TimeOut)) 
+            * 60) < 12 * 60, 'N', 'Y') AS ShiftNotOK, 
       qryWorkingTimeBreaks.BreakLength, 
       qryWorkingTimeBreaks.BreakHours, 
       tblEmployees.FirstName
@@ -122,9 +117,7 @@ router.route("/coststructure").get( async(req, res) => {
       ((tblWorkingTime.WorkDate >= '2021-01-01') AND (ISNULL(tblWorkingTime.TSSaved, 0) = -1) AND (ISNULL(tblWorkingTime.Deleted, 0) = 0))
   ORDER BY 
       tblWorkingTime.WorkDate, 
-      tblEmployees.FirstName;
-  
-  `, function(err, record) {
+      tblEmployees.FirstName;`, function(err, record) {
         if (err) {
             console.log(err);
             res.status(500).json({ status: false });

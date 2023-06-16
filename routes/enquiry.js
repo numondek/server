@@ -1844,7 +1844,58 @@ router.route("/commercial").post(async (req, res) => {
 });
 
 
-
+router.route("/workingTime").post(async (req, res) => {
+  try {
+    const EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT  subquery.*,
+    RIGHT('00' + CONVERT(VARCHAR, subquery.WorkHr), 2) + ':' + RIGHT('00' + CONVERT(VARCHAR, subquery.WorkMin), 2) AS WorkHours,
+    RIGHT('00' + CONVERT(VARCHAR, subquery.TotHr), 2) + ':' + RIGHT('00' + CONVERT(VARCHAR, subquery.TotMin), 2) AS TotHours
+FROM (
+    SELECT
+        tblWorkingTime.*,
+        DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) AS WorkMinutes,
+        CASE WHEN ISNULL(DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])), 0) <> 0
+            THEN CAST(DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) / 60 AS INT)
+            ELSE '' END AS WorkHr,
+        CASE WHEN ISNULL(DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])), 0) <> 0
+            THEN DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) - (CAST(DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) / 60 AS INT) * 60)
+            ELSE '' END AS WorkMin,
+        DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) + ISNULL(tblWorkingTime.[TravelTime], 0) AS TotMinutes,
+        CASE WHEN ISNULL(DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) + ISNULL(tblWorkingTime.[TravelTime], 0), 0) <> 0
+            THEN CAST((DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) + ISNULL(tblWorkingTime.[TravelTime], 0)) / 60 AS INT)
+            ELSE '' END AS TotHr,
+        CASE WHEN ISNULL(DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) + ISNULL(tblWorkingTime.[TravelTime], 0), 0) <> 0
+            THEN (DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) + ISNULL(tblWorkingTime.[TravelTime], 0)) - (CAST((DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) + ISNULL(tblWorkingTime.[TravelTime], 0)) / 60 AS INT) * 60)
+            ELSE '' END AS TotMin,
+        CASE WHEN DATEDIFF(MINUTE, tblWorkingTime.[TimeIn], DATEADD(HOUR, IIF(tblWorkingTime.NightShift = -1, 24, 0), tblWorkingTime.[TimeOut])) < 12 * 60
+            THEN 'N'
+            ELSE 'Y' END AS ShiftNotOK,
+        qryWorkingTimeBreaks.BreakLength,
+        qryWorkingTimeBreaks.BreakHours,
+        CONCAT(tblEmployees.FirstName, ' ', ISNULL(tblEmployees.Surname, '')) AS Name,
+        tblWorkingTimeType.TransportType
+    FROM
+        tblWorkingTime
+        LEFT JOIN qryWorkingTimeBreaks ON tblWorkingTime.ID = qryWorkingTimeBreaks.ID
+        LEFT JOIN tblEmployees ON tblWorkingTime.EmployeeID = tblEmployees.EmployeeID
+        LEFT JOIN  tblWorkingTimeType ON tblWorkingTime.TypeID =  tblWorkingTimeType.TypeID
+        
+        WHERE tblWorkingTime.EnquiryID = ${EnquiryID}
+) AS subquery
+ORDER BY
+    subquery.WorkDate;
+`);
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
 
 
 
