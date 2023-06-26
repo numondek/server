@@ -1350,13 +1350,37 @@ router.route("/subcontract").post(async (req, res) => {
 });
 
 
-router.route("/saleValuation").get(async (req, res) => {
+
+router.route("/subContractSummary").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 *
+    const result = await con.request().query(`SELECT qrySubbieOrderSummary.*, qrySubbieSupplier.CompanyName AS Name, qryEmployees.EmployeeFullName
+    FROM qrySubbieOrderSummary LEFT JOIN qrySubbieSupplier ON qrySubbieOrderSummary.SubbieCode = qrySubbieSupplier.CompanyID
+    LEFT JOIN qryEmployees ON qryEmployees.EmployeeID = qrySubbieSupplier.ManagerID
+    WHERE qrySubbieOrderSummary.EnquiryID = ${EnquiryID};
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+
+
+router.route("/saleValuation").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT *
     FROM qryValSched
-    WHERE qryValSched.[DeleteYN] = 0 
+    WHERE qryValSched.[DeleteYN] = 0 AND qryValSched.EnqID = ${EnquiryID}
     ORDER BY qryValSched.DeleteYN, qryValSched.ValSchedID;
     `)
     res.status(200).json({
@@ -1495,7 +1519,7 @@ router.route("/jobLogByPhase").post(async (req, res) => {
   try {
     let ContractNo = req.body['ContractNo'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 100 qryPileSchedLogDetailsJob.ContractNo,
+    const result = await con.request().query(`SELECT TOP 20 qryPileSchedLogDetailsJob.ContractNo,
     qryPileSchedLogDetailsJob.EnqName,
     qryPileSchedLogDetailsJob.FullAddress,
     qryPileSchedLogDetailsJob.RigNo,
@@ -1637,12 +1661,13 @@ ORDER BY tblEnquiryTenders.MainTender DESC, tblEnquiryTenders.Deleted, tblEnquir
   }
 });
 
-router.route("/concreteTotal").get(async (req, res) => {
+router.route("/concreteTotal").post(async (req, res) => {
   try {
    
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 *
-    FROM tblPileLogs;
+    const result = await con.request().query(`SELECT *
+    FROM tblPileLogs
+    ;
     `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -1898,6 +1923,331 @@ ORDER BY
     });
   }
 });
+
+
+
+router.route("/pillingS").post(async (req, res) => {
+  try {
+    const EnquiryID = req.body['EnquiryID'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT  *
+    FROM qryEnqPileSummary
+    WHERE qryEnqPileSummary.EnquiryID = ${EnquiryID};`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: 'falses'
+    });
+  }
+});
+
+
+router.route("/contractCost").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod,
+    E_cltran.cltdate, E_cltran.cltmod, E_cltran.cltbatch, E_cltran.cltcount, E_cltran.clttype,
+    E_cltran.cltref1, E_cltran.cltref2, E_cltran.cltnotes, E_cltran.cltval,
+    CAST(E_cltran.cltval AS float) AS cltval2, E_cltran.cltqty, E_cltran.cltsser,
+    E_cltran.cltscode, E_cltran.clttoday, E_cltran.cltusser, E_cltran.cltubatch,
+    E_cltran.cltcposn, E_cltran.cltcperiod, E_cltran.cltvallc, E_cltran.cltcurr,
+    E_cltran.cltxrate, E_cltran.cltfromco, E_cltran.clttoco, E_cltran.cltvalno,
+    E_cltran.cltpono, E_cltran.clcname, E_cltran.Grp, E_cltran.Cat, E_cltran.Division,
+    E_cltran.NumberOnly, E_cltran.Recharge, E_cltran.Sales, E_cltran.Supplier
+FROM E_cltran;
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/contractCostR").post(async (req, res) => {
+  try {
+    let EnquiryID = req.body['EnquiryID'];
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod,
+    E_cltran.cltdate, E_cltran.cltmod, E_cltran.cltbatch, E_cltran.cltcount, E_cltran.clttype,
+    E_cltran.cltref1, E_cltran.cltref2, E_cltran.cltnotes, E_cltran.cltval,
+    CAST(E_cltran.cltval AS float) AS cltval2, E_cltran.cltqty, E_cltran.cltsser,
+    E_cltran.cltscode, E_cltran.clttoday, E_cltran.cltusser, E_cltran.cltubatch,
+    E_cltran.cltcposn, E_cltran.cltcperiod, E_cltran.cltvallc, E_cltran.cltcurr,
+    E_cltran.cltxrate, E_cltran.cltfromco, E_cltran.clttoco, E_cltran.cltvalno,
+    E_cltran.cltpono, E_cltran.clcname, E_cltran.Grp, E_cltran.Cat, E_cltran.Division,
+    E_cltran.NumberOnly, E_cltran.Recharge, E_cltran.Sales, E_cltran.Supplier
+FROM E_cltran
+WHERE 
+    E_cltran.Recharge = 'Y';
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+router.route("/purchaseOrder").get(async (req, res) => {
+  try {
+    const EnquiryID = req.body['EnquiryID'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10
+    E_poline.OrderNo,
+    E_poline.pohcode,
+    E_poline.pohserial,
+    E_poline.pohsupply,
+    E_poline.pohtype,
+    E_poline.pohverno,
+    E_poline.pohcopy,
+    E_poline.pohclaser,
+    E_poline.pohcon,
+    E_poline.pohstsser,
+    E_poline.pohstore,
+    E_poline.pohbuyer,
+    E_poline.pohplaser,
+    E_poline.pohsup,
+    E_poline.pohpld,
+    E_poline.pohdel,
+    E_poline.pohsjser,
+    E_poline.pohsjob,
+    E_poline.pohopn,
+    E_poline.pohorddate,
+    E_poline.pohdeldate,
+    E_poline.pohreq,
+    E_poline.pohdispatch,
+    E_poline.pohfax,
+    E_poline.pohemail,
+    E_poline.pohmemohead,
+    E_poline.pohmemofoot,
+    E_poline.pohstatus,
+    E_poline.pohdstatus,
+    E_poline.pohlastline,
+    E_poline.pohlines,
+    E_poline.pohtotal,
+    E_poline.pohdelval,
+    E_poline.pohinv,
+    E_poline.pohact,
+    E_poline.pohdatemod,
+    E_poline.pohscaser,
+    E_poline.pohscacode,
+    E_poline.pohtoco,
+    E_poline.poholyn,
+    E_poline.pohfromco,
+    E_poline.pohdelco,
+    E_poline.pohxrate,
+    E_poline.pohudt1,
+    E_poline.pohudt2,
+    E_poline.pohudt3,
+    E_poline.pohudt4,
+    E_poline.pohudt5,
+    E_poline.pohudt6,
+    E_poline.pohudt7,
+    E_poline.pohudt8,
+    E_poline.pohudy1,
+    E_poline.pohudy2,
+    E_poline.pohudy3,
+    E_poline.pohudy4,
+    E_poline.pohudy5,
+    E_poline.pohudy6,
+    E_poline.pohudy7,
+    E_poline.pohudy8,
+    E_poline.pohudc1,
+    E_poline.pohudc2,
+    E_poline.pohudc3,
+    E_poline.pohudc4,
+    E_poline.pohudc5,
+    E_poline.pohudd1,
+    E_poline.pohudd2,
+    E_poline.pohudd3,
+    E_poline.pohudd4,
+    E_poline.pohudd5,
+    E_poline.pohpoastatus,
+    E_poline.pohpoarqdate,
+    E_poline.pohpoarqsyiser,
+    E_poline.pohpoaarjdate,
+    E_poline.pohpoaarjsyiser,
+    E_poline.pohpoarjnotes,
+    E_poline.pohsubnum,
+    E_poline.pohsubpref,
+    E_poline.pohsubsuff,
+    E_poline.pohsubcoffno,
+    E_poline.pohphdelclaser,
+    E_poline.pohphdelclacon,
+    E_poline.pohphlser,
+    E_poline.pohcoffs,
+    E_poline.pohbulkser,
+    E_poline.pohptype,
+    E_poline.pohtendcode,
+    E_poline.pohtendrtndate,
+    E_poline.pohtendtrade,
+    E_poline.pohdeltime,
+    E_poline.polcode,
+    E_poline.polpohser,
+    E_poline.polline,
+    E_poline.polseq,
+    E_poline.poltype,
+    E_poline.polstaser,
+    E_poline.polprod,
+    E_poline.polsttser,
+    E_poline.polname,
+    E_poline.poldesc,
+    E_poline.polsjser,
+    E_poline.polsjob,
+    E_poline.polopn,
+    E_poline.polchd,
+    E_poline.polorunit,
+    ROUND(CAST(E_poline.polorqty AS decimal(18, 3)), 3) AS polorqty,
+    E_poline.polmeunit,
+    E_poline.poldim,
+    E_poline.poldim1,
+    E_poline.poldim2,
+    E_poline.poldim3,
+    E_poline.polmeqty,
+    E_poline.polbaunit,
+    CAST(polqty AS decimal(18, 0)) AS polqty,
+    E_poline.polprunit,
+    CAST(E_poline.polprice AS float) AS polprice,
+    E_poline.polgross,
+    E_poline.poldiscp1,
+    E_poline.poldiscp2,
+    E_poline.poldiscp3,
+    E_poline.poldiscp4,
+    E_poline.poldiscp5,
+    E_poline.poldisc,
+    CAST(E_poline.polval AS float) AS polval,
+    E_poline.polvc,
+    E_poline.polvat,
+    E_poline.polpconv,
+    CAST(E_poline.poluprice AS float) AS poluprice,
+    E_poline.poldeldate,
+    E_poline.polanalg,
+    ROUND(CAST(E_poline.poldelqty AS decimal(18, 3)), 3) AS poldelqty,
+    CAST(E_poline.poldelval AS float) AS poldelval,
+    ROUND(CAST(E_poline.polinvqty AS decimal(18, 3)), 3) AS polinvqty,
+    CAST(E_poline.polinvval AS float) AS polinvval,
+    E_poline.polactinv,
+    E_poline.polstatus,
+    E_poline.pololyn,
+    E_poline.poldeleted,
+    E_poline.polupdprc,
+    E_poline.poldec,
+    E_poline.polscwser,
+    E_poline.polnom,
+    E_poline.polstastat,
+    E_poline.polhexpdate,
+    E_poline.polhenddate,
+    E_poline.polcoffqty,
+    E_poline.polcoffval,
+    E_poline.poltoco,
+    E_poline.polclaser,
+    E_poline.polclacode,
+    E_poline.poldeltime,
+    E_poline.poldacton,
+    E_poline.poltacton,
+    E_poline.poldantoff,
+    E_poline.poldactoff,
+    E_poline.poltactoff,
+    E_poline.polonhireref,
+    E_poline.poloffhireref,
+    E_poline.poldanton,
+    E_poline.poltanton,
+    E_poline.polcurrclaser,
+    E_poline.polpoentonhireref,
+    E_poline.polpoentoffhireref,
+    E_poline.polpooledqty,
+    E_poline.planame,
+    E_poline.Grp,
+    E_poline.Cat,
+    E_poline.Division,
+    E_poline.NumberOnly,
+    CAST(E_poline.CommitVal AS float) AS CommitVal,
+    CAST(E_poline.CommitOS AS float) AS CommitOS,
+    E_poline.OverVal,
+    E_poline.UnderVal,
+    CAST(E_poline.OverUnder AS float) AS OverUnder,
+    E_poline.YearPeriod,
+    E_poline.CostCode,
+    E_poline.InvDiff
+FROM
+    E_poline
+WHERE
+    E_poline.pohstatus <> 'x';
+`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: falses
+    });
+  }
+});
+
+////http://localhost:5000/enquiry/documentControl
+
+router.route("/documentControl").post(async (req, res) => {
+  try {
+    // const EnquiryID = req.body['EnquiryID'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 *
+      FROM tblContractDocs; 
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+////http://localhost:5000/enquiry/documentControlSub
+
+router.route("/documentControlSub").post(async (req, res) => {
+  try {
+    // const EnquiryID = req.body['EnquiryID'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 *
+    FROM tblDocIssues;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+
+
+
+
+
+
+
 
 
 
