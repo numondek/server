@@ -1948,7 +1948,7 @@ router.route("/pillingS").post(async (req, res) => {
 
 router.route("/contractCost").post(async (req, res) => {
   try {
-    let EnquiryID = req.body['EnquiryID'];
+    let NumberOnly = req.body['NumberOnly'];
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT TOP 10 E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod,
     E_cltran.cltdate, E_cltran.cltmod, E_cltran.cltbatch, E_cltran.cltcount, E_cltran.clttype,
@@ -1959,7 +1959,8 @@ router.route("/contractCost").post(async (req, res) => {
     E_cltran.cltxrate, E_cltran.cltfromco, E_cltran.clttoco, E_cltran.cltvalno,
     E_cltran.cltpono, E_cltran.clcname, E_cltran.Grp, E_cltran.Cat, E_cltran.Division,
     E_cltran.NumberOnly, E_cltran.Recharge, E_cltran.Sales, E_cltran.Supplier
-FROM E_cltran;
+FROM E_cltran WHERE ISNUMERIC(E_cltran.NumberOnly) = 1 AND
+E_cltran.NumberOnly = ${NumberOnly};
 `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -1974,9 +1975,10 @@ FROM E_cltran;
 
 router.route("/contractCostR").post(async (req, res) => {
   try {
-    let EnquiryID = req.body['EnquiryID'];
+    let NumberOnly = req.body['NumberOnly'];
+ 
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod,
+    const result = await con.request().query(`SELECT  E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod,
     E_cltran.cltdate, E_cltran.cltmod, E_cltran.cltbatch, E_cltran.cltcount, E_cltran.clttype,
     E_cltran.cltref1, E_cltran.cltref2, E_cltran.cltnotes, E_cltran.cltval,
     CAST(E_cltran.cltval AS float) AS cltval2, E_cltran.cltqty, E_cltran.cltsser,
@@ -1987,7 +1989,8 @@ router.route("/contractCostR").post(async (req, res) => {
     E_cltran.NumberOnly, E_cltran.Recharge, E_cltran.Sales, E_cltran.Supplier
 FROM E_cltran
 WHERE 
-    E_cltran.Recharge = 'Y';
+    E_cltran.Recharge = 'Y' AND ISNUMERIC(E_cltran.NumberOnly) = 1 AND
+    E_cltran.NumberOnly = ${NumberOnly};
 `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2001,9 +2004,9 @@ WHERE
 });
 
 
-router.route("/purchaseOrder").get(async (req, res) => {
+router.route("/purchaseOrder").post(async (req, res) => {
   try {
-    const EnquiryID = req.body['EnquiryID'];
+    const NumberOnly = req.body['NumberOnly'];
     
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT TOP 10
@@ -2186,7 +2189,8 @@ router.route("/purchaseOrder").get(async (req, res) => {
 FROM
     E_poline
 WHERE
-    E_poline.pohstatus <> 'x';
+    E_poline.pohstatus <> 'x' AND ISNUMERIC(E_poline.NumberOnly) = 1 AND
+    E_poline.NumberOnly = ${NumberOnly};;
 `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2194,16 +2198,69 @@ WHERE
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      status: falses
+      status: false
     });
   }
 });
 
+router.route("/contractSales").post(async (req, res) => {
+  try {
+    const NumberOnly = req.body['NumberOnly'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 E_sltran.sltcon, E_sltran.sltcode, E_sltran.sltperiod, E_sltran.sltdate, E_sltran.sltbatch, E_sltran.sltcount, E_sltran.slttype, E_sltran.sltcsm, E_sltran.sltref1, E_sltran.sltref2, E_sltran.sltnotes, E_sltran.sltgoods, E_sltran.sltvat, E_sltran.sltdisc, E_sltran.sltretn, E_sltran.sltspare, E_sltran.slttotal, E_sltran.sltout,
+    CAST(E_sltran.sltgoods AS DECIMAL(18,2)) AS sltgoods2,
+    CAST(E_sltran.sltvat AS DECIMAL(18,2)) AS sltvat2,
+    CAST(E_sltran.sltdisc AS DECIMAL(18,2)) AS sltdisc2,
+    CAST(E_sltran.sltretn AS DECIMAL(18,2)) AS sltretn2,
+    CAST(E_sltran.sltspare AS DECIMAL(18,2)) AS sltspare2,
+    CAST(E_sltran.slttotal AS DECIMAL(18,2)) AS slttotal2,
+    CAST(E_sltran.sltout AS DECIMAL(18,2)) AS sltout2,
+    E_sltran.sltdatedue, E_sltran.sltdatemat, E_sltran.sltpermat, E_sltran.slttoday, E_sltran.sltusser, E_sltran.slaname, E_sltran.csmname, E_sltran.Division, E_sltran.NumberOnly
+    FROM E_sltran
+    WHERE (((E_sltran.[sltcsm])<>'MEMO')) AND ISNUMERIC(E_sltran.NumberOnly) = 1 AND
+    E_sltran.NumberOnly = ${NumberOnly};;
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+router.route("/contractSalesAdj").post(async (req, res) => {
+  try {
+    const NumberOnly = req.body['NumberOnly'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod, E_cltran.cltdate, E_cltran.cltmod, E_cltran.cltbatch, E_cltran.cltcount, E_cltran.clttype, E_cltran.cltref1, E_cltran.cltref2, E_cltran.cltnotes, E_cltran.cltval,
+    CAST(E_cltran.cltval AS DECIMAL(18,2)) AS cltval2,
+    E_cltran.cltqty, E_cltran.cltsser, E_cltran.cltscode, E_cltran.clttoday, E_cltran.cltusser, E_cltran.cltubatch, E_cltran.cltcposn, E_cltran.cltcperiod, E_cltran.cltvallc, E_cltran.cltcurr, E_cltran.cltxrate, E_cltran.cltfromco, E_cltran.clttoco, E_cltran.cltvalno, E_cltran.cltpono, E_cltran.clcname, E_cltran.Grp, E_cltran.Cat, E_cltran.Division, E_cltran.NumberOnly, E_cltran.Sales
+    FROM E_cltran
+    WHERE (((E_cltran.[Recharge])='Y')) AND ISNUMERIC(E_cltran.NumberOnly) = 1 AND
+    E_cltran.NumberOnly = ${NumberOnly};;
+   `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
 ////http://localhost:5000/enquiry/documentControl
 
-router.route("/documentControl").post(async (req, res) => {
+router.route("/documentControl").get(async (req, res) => {
   try {
-    // const EnquiryID = req.body['EnquiryID'];
+    // const NumberOnly = req.body['NumberOnly'];
     
     const con = await sql.connect(db);
     const result = await con.request().query(`SELECT TOP 10 *
@@ -2222,7 +2279,7 @@ router.route("/documentControl").post(async (req, res) => {
 
 ////http://localhost:5000/enquiry/documentControlSub
 
-router.route("/documentControlSub").post(async (req, res) => {
+router.route("/documentControlSub").get(async (req, res) => {
   try {
     // const EnquiryID = req.body['EnquiryID'];
     
@@ -2239,6 +2296,51 @@ router.route("/documentControlSub").post(async (req, res) => {
     });
   }
 });
+
+
+router.route("/revision").post(async (req, res) => {
+  try {
+    // const EnquiryID = req.body['EnquiryID'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 tblDocIssues.DocIssueID, tblDocIssues.DocID AS DocID2, tblDocIssues.DocRevNo, tblDocIssues.DocDate, tblDocIssues.DocDirection, tblDocIssues.MethodID, tblDocIssues.StatusID, tblDocIssues.IssuedByToID, tblContractDocs.EnquiryID, tblContractDocs.DocumentName + '-' + COALESCE(tblContractDocs.DocumentRef, '') AS DocName, qryJobContactsEmployees.ContactName, tblDocMethods.Method, tblDocStatus.Status
+    FROM tblDocIssues INNER JOIN tblContractDocs ON tblDocIssues.DocID = tblContractDocs.DocID
+    LEFT JOIN qryJobContactsEmployees ON tblDocIssues.IssuedByToID = qryJobContactsEmployees.ContactID
+    LEFT JOIN tblDocMethods ON tblDocIssues.MethodID = tblDocMethods.MethodCode
+    LEFT JOIN tblDocStatus ON tblDocIssues.StatusID = tblDocStatus.StatusCode;
+    `)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
+
+router.route("/documentRegidter").post(async (req, res) => {
+  try {
+    const EnquiryID = req.body['EnquiryID'];
+    
+    const con = await sql.connect(db);
+    const result = await con.request().query(`SELECT TOP 10 *
+    FROM qryDocumentRegister;`)
+    res.status(200).json({
+      data: result.recordsets[0]
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: false
+    });
+  }
+});
+
+
 
 
 
