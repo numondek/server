@@ -41,6 +41,7 @@ router.route("/enquiryView").post(async (req, res) => {
   let endDate = req.body['endDate'];
   const page = req.body['page'];
   const size = req.body['size'];
+  const view = req.body['view'];
 
 
   try {
@@ -105,6 +106,7 @@ router.route("/enquiryView").post(async (req, res) => {
 
     const offset = (page - 1) * size;
     const whereClause = filters.length > 0 ? `WHERE ${dateSelected == null ? '' : time} ${filters.join(' AND ')} ` : '';
+    const whereClause1 = filters.length > 0 ? `AND ${dateSelected == null ? '' : time} ${filters.join(' AND ')} ` : '';
     // console.log(whereClause);
 
     const result = await con.query(
@@ -113,12 +115,24 @@ router.route("/enquiryView").post(async (req, res) => {
     );
     const totalPages = result.recordsets[0][0];
 
+    var data;
+    if (view == 1){
     const queryResult = await con.query(
       `SELECT *
       FROM qryEnquiriesFull ${whereClause} 
       ORDER BY LEN(EnquiryNo) DESC , RIGHT(EnquiryNo,LEN(EnquiryNo)-1) DESC OFFSET ${offset} ROWS FETCH NEXT ${size} ROWS ONLY;`
     );
-    const data = queryResult.recordsets[0];
+    data = queryResult.recordsets[0];
+    }else{
+      const queryResult = await con.query(
+        `SELECT IIF(ISNULL([Won], 0) = -1, 0, [TenderType]) AS EnquiryStatus, *
+        FROM qryEnquiriesFull
+        WHERE ISNULL([MainTender], 0) = 1 ${whereClause1}
+        ORDER BY LEN(ContractNo) DESC, RIGHT(EnquiryNo, LEN(EnquiryNo) - 1) DESC OFFSET ${offset} ROWS FETCH NEXT ${size} ROWS ONLY; `
+      );
+      data = queryResult.recordsets[0];
+      
+    }
 
     res.status(200).json({
       data,
@@ -2327,7 +2341,7 @@ router.route("/documentRegidter").post(async (req, res) => {
     const EnquiryID = req.body['EnquiryID'];
     
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 *
+    const result = await con.request().query(`SELECT TOP 70 *
     FROM qryDocumentRegister;`)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2339,6 +2353,10 @@ router.route("/documentRegidter").post(async (req, res) => {
     });
   }
 });
+
+
+
+
 
 
 
