@@ -90,7 +90,7 @@ router.route("/enquiryView").post(async (req, res) => {
 
     for (const [variable, value] of variables) {
       if (value || value != null) {
-        filters.push(`qryEnquiriesFull.${variable} = ${typeof(value) === 'boolean' ? `'${value}'` : value}`);
+        filters.push(`${dateSelected !== null || keyWord !== null || tender !== null ? `AND` : ''} qryEnquiriesFull.${variable} = ${typeof(value) === 'boolean' ? `'${value}'` : value}`);
       }
     }
 
@@ -104,13 +104,15 @@ router.route("/enquiryView").post(async (req, res) => {
     }
 
     let like ;
-    if (keyWord != ''){
-      like = `AND EnqName LIKE '%' + ${keyWord} + '%' OR FullAddress LIKE '%' + ${keyWord} + '%'OR Company LIKE '%' + ${keyWord} + '%'`;
+    if (keyWord !== null){
+      like = `${dateSelected !== null ? `AND` : ''} EnqName LIKE '%${keyWord}%' OR FullAddress LIKE '%${keyWord} %' OR Company LIKE '%${keyWord}%'`;
+      // console.log(keyWord);
     }
 
     let like1 ;
-    if (tender != ''){
-      like1 = ` AND ISNULL(OrderValue, ISNULL(TenderValue, 0)) >= ISNULL(${tender}, 0)`;
+    if (tender !== null){
+      like1 = ` ${dateSelected !== null || keyWord !== null ? `AND` : ''}  ISNULL(OrderValue, ISNULL(TenderValue, 0)) >= ISNULL(${tender}, 0)`;
+      // console.log(tender);
     }
     
 
@@ -120,8 +122,8 @@ router.route("/enquiryView").post(async (req, res) => {
     const con = await sql.connect(db);
 
     const offset = (page - 1) * size;
-    const whereClause = filters.length > 0 ? `WHERE ${dateSelected == null ? '' : time} ${keyWord == '' ? '' : like} ${tender == '' ? '' : like1} ${filters.join(' AND ')} ` : '';
-    const whereClause1 = filters.length > 0 ? `AND ${dateSelected == null ? '' : time} ${keyWord == '' ? '' : like} ${tender == '' ? '' : like1} ${filters.join(' AND ')} ` : '';
+    const whereClause = filters.length > 0  || dateSelected == null || keyWord == null || tender == null ? `WHERE ${dateSelected == null ? '' : time} ${keyWord == null ? '' : like} ${tender == null ? '' : like1} ${filters.join(' AND ')} ` : '';
+    const whereClause1 = filters.length > 0 || dateSelected == null || keyWord == null || tender == null  ? `AND ${dateSelected == null ? '' : time} ${keyWord == null ? '' : like} ${tender == null ? '' : like1} ${filters.join(' AND ')} ` : '';
     // console.log(whereClause);
 
     const result = await con.query(
