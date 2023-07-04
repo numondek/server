@@ -39,6 +39,8 @@ router.route("/enquiryView").post(async (req, res) => {
   let dateSelected = req.body['dateSelected'];
   let startDate = req.body['startDate'];
   let endDate = req.body['endDate'];
+  let tender = req.body['tender'];
+  let keyWord = req.body['keyWord'];
   const page = req.body['page'];
   const size = req.body['size'];
   const view = req.body['view'];
@@ -100,13 +102,26 @@ router.route("/enquiryView").post(async (req, res) => {
         break;
       }
     }
+
+    let like ;
+    if (keyWord != null){
+      like = `AND EnqName LIKE '%' + ${keyWord} + '%' OR FullAddress LIKE '%' + ${keyWord} + '%'OR Company LIKE '%' + ${keyWord} + '%'`;
+    }
+
+    let like1 ;
+    if (tender != null){
+      like1 = ` AND ISNULL(OrderValue, ISNULL(TenderValue, 0)) >= ISNULL(${tender}, 0)`;
+    }
+    
+
+
     
 
     const con = await sql.connect(db);
 
     const offset = (page - 1) * size;
-    const whereClause = filters.length > 0 ? `WHERE ${dateSelected == null ? '' : time} ${filters.join(' AND ')} ` : '';
-    const whereClause1 = filters.length > 0 ? `AND ${dateSelected == null ? '' : time} ${filters.join(' AND ')} ` : '';
+    const whereClause = filters.length > 0 ? `WHERE ${dateSelected == null ? '' : time} ${keyWord == '' ? '' : like} ${tender == '' ? '' : like1} ${filters.join(' AND ')} ` : '';
+    const whereClause1 = filters.length > 0 ? `AND ${dateSelected == null ? '' : time} ${keyWord == '' ? '' : like} ${tender == '' ? '' : like1} ${filters.join(' AND ')} ` : '';
     // console.log(whereClause);
 
     const result = await con.query(

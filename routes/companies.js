@@ -111,7 +111,10 @@ WHERE (qryCreditInsuranceConsol.CreditInsurance=1) AND (tblCompanies.Dormant=0);
         }
       var con = new sql.Request();
     
-      con.query('SELECT * FROM qryContactSearch ORDER BY qryContactSearch.Surname, qryContactSearch.FirstName;', function(err, record) {
+      con.query(`SELECT  qryContactSearch .* 
+      FROM qryContactSearch 
+      
+      ORDER BY qryContactSearch.Surname, qryContactSearch.FirstName;`, function(err, record) {
         if (err) {
             console.log(err);
             res.status(500).json({ status: false });
@@ -135,7 +138,14 @@ WHERE (qryCreditInsuranceConsol.CreditInsurance=1) AND (tblCompanies.Dormant=0);
         }
       var con = new sql.Request();
     
-      con.query('SELECT c.*, i.LastInteraction FROM dbo.qryCompanies AS c LEFT JOIN dbo.qryCompanyInteractionLast AS i ON c.CompanyID = i.CompanyID WHERE c.CompanyName IS NOT NULL ORDER BY c.CompanyName;', function(err, record) {
+      con.query(`SELECT  c.*, i.LastInteraction ,tblCompaniesCategories.CategoryID, tblCompaniesMarkets.M_MarketID, qryCompanyChasing.NextChaseBy, qryCompanyMailshots.MailshotID
+      FROM dbo.qryCompanies AS c 
+      LEFT JOIN dbo.qryCompanyInteractionLast AS i ON c.CompanyID = i.CompanyID 
+      LEFT JOIN tblCompaniesCategories ON c.CompanyID = tblCompaniesCategories.CompanyID
+	  LEFT JOIN tblCompaniesMarkets ON c.CompanyID = tblCompaniesMarkets.CompanyID
+	  LEFT JOIN qryCompanyChasing ON c.CompanyID = qryCompanyChasing.CompanyID
+	  LEFT JOIN qryCompanyMailshots ON c.CompanyID = qryCompanyMailshots.CompanyID
+      WHERE c.CompanyName IS NOT NULL ORDER BY c.CompanyName;`, function(err, record) {
         if (err) {
             console.log(err);
             res.status(500).json({ status: false });

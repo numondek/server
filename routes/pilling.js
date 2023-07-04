@@ -184,7 +184,7 @@ router.route("/timesheets").get( async(req, res) => {
       }
     var con = new sql.Request();
   
-    con.query(`SELECT DATEDIFF(n, qryWorkingTimeEntry.TimeIn, DATEADD(hh, IIF(qryWorkingTimeEntry.NightShift=-1, 24, 0), qryWorkingTimeEntry.TimeOut)) AS WorkMinutes, 
+    con.query(`SELECT  DATEDIFF(n, qryWorkingTimeEntry.TimeIn, DATEADD(hh, IIF(qryWorkingTimeEntry.NightShift=-1, 24, 0), qryWorkingTimeEntry.TimeOut)) AS WorkMinutes, 
     CASE WHEN ISNULL(WorkMinutes, '') <> '' THEN CAST(FLOOR(WorkMinutes/60) AS VARCHAR(10)) ELSE '' END AS WorkHr, 
     CASE WHEN ISNULL(WorkMinutes, '') <> '' THEN WorkMinutes-(FLOOR(WorkMinutes/60)*60) ELSE '' END AS WorkMin, 
     WorkMinutes + COALESCE(qryWorkingTimeEntry.TravelTime, 0) AS TotMinutes, 
