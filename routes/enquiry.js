@@ -104,12 +104,12 @@ router.route("/enquiryView").post(async (req, res) => {
     }
 
     let like ;
-    if (keyWord != null){
+    if (keyWord != ''){
       like = `AND EnqName LIKE '%' + ${keyWord} + '%' OR FullAddress LIKE '%' + ${keyWord} + '%'OR Company LIKE '%' + ${keyWord} + '%'`;
     }
 
     let like1 ;
-    if (tender != null){
+    if (tender != ''){
       like1 = ` AND ISNULL(OrderValue, ISNULL(TenderValue, 0)) >= ISNULL(${tender}, 0)`;
     }
     
