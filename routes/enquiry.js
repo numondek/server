@@ -36,11 +36,11 @@ router.route("/enquiryView").post(async (req, res) => {
   let jobOnHoldStatus = req.body['jobOnHoldStatus'];
   let jobSecuredByClientStatus = req.body['jobSecuredByClientStatus'];
   let targetEnquiryStatus = req.body['targetEnquiryStatus'];
-  let dateSelected = req.body['dateSelected'];
+  let dateSelected = req.body['dateSelected'] ?? null;
   let startDate = req.body['startDate'];
   let endDate = req.body['endDate'];
-  let tender = req.body['tender'];
-  let keyWord = req.body['keyWord'];
+  let tender = req.body['tender'] ?? null;
+  let keyWord = req.body['keyWord'] ?? null;
   const page = req.body['page'];
   const size = req.body['size'];
   const view = req.body['view'];
@@ -102,6 +102,7 @@ router.route("/enquiryView").post(async (req, res) => {
         break;
       }
     }
+    // console.log(req.body);
 
     let like ;
     if (keyWord !== null){
@@ -122,9 +123,29 @@ router.route("/enquiryView").post(async (req, res) => {
     const con = await sql.connect(db);
 
     const offset = (page - 1) * size;
-    const whereClause = filters.length > 0  || dateSelected == null || keyWord == null || tender == null ? `WHERE ${dateSelected == null ? '' : time} ${keyWord == null ? '' : like} ${tender == null ? '' : like1} ${filters.join(' AND ')} ` : '';
-    const whereClause1 = filters.length > 0 || dateSelected == null || keyWord == null || tender == null  ? `AND ${dateSelected == null ? '' : time} ${keyWord == null ? '' : like} ${tender == null ? '' : like1} ${filters.join(' AND ')} ` : '';
-    // console.log(whereClause);
+    const whereConditions = [];
+
+   
+    if (dateSelected !== null) {
+      whereConditions.push(time);
+    }
+
+    if (keyWord !== null) {
+      whereConditions.push(like);
+    }
+
+    if (tender !== null) {
+      whereConditions.push(like1);
+    }
+    if (filters.length > 0) {
+      whereConditions.push(filters.join(' AND '));
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' ')} ` : '';
+
+    
+    const whereClause1 = whereConditions.length > 0 ? `AND ${whereConditions.join(' ')} ` : '';
+    console.log(whereClause);
 
     const result = await con.query(
       `SELECT COUNT(*) as TotalRows
@@ -137,7 +158,7 @@ router.route("/enquiryView").post(async (req, res) => {
     const queryResult = await con.query(
       `SELECT *
       FROM qryEnquiriesFull ${whereClause} 
-      ORDER BY LEN(EnquiryNo) DESC , RIGHT(EnquiryNo,LEN(EnquiryNo)-1) DESC OFFSET ${offset} ROWS FETCH NEXT ${size} ROWS ONLY;`
+      ORDER BY LEN(EnquiryNo) DESC , RIGHT(EnquiryNo,LEN(EnquiryNo)-1) DESC OFFSET ${offset} ROWS FETCH NEXT ${size} ROWS ONLY `
     );
     data = queryResult.recordsets[0];
     }else{
@@ -145,7 +166,7 @@ router.route("/enquiryView").post(async (req, res) => {
         `SELECT IIF(ISNULL([Won], 0) = -1, 0, [TenderType]) AS EnquiryStatus, *
         FROM qryEnquiriesFull
         WHERE ISNULL([MainTender], 0) = 1 ${whereClause1}
-        ORDER BY LEN(ContractNo) DESC, RIGHT(EnquiryNo, LEN(EnquiryNo) - 1) DESC OFFSET ${offset} ROWS FETCH NEXT ${size} ROWS ONLY; `
+        ORDER BY LEN(ContractNo) DESC, RIGHT(EnquiryNo, LEN(EnquiryNo) - 1) DESC OFFSET ${offset} ROWS FETCH NEXT ${size} ROWS ONLY `
       );
       data = queryResult.recordsets[0];
       
