@@ -1,8 +1,6 @@
 const express = require("express");
 var db = require('../db/db');
-const config = require("../config");
 const sql = require('mssql/msnodesqlv8')
-require('dotenv').config();
 const router = express.Router();
 
 

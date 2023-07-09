@@ -1,3 +1,3 @@
-module.exports = {
-  key: "MyBlogThings",
-};
+// module.exports = {
+//   key: "",
+// };

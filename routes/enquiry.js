@@ -1827,7 +1827,7 @@ LEFT JOIN
     tblCompanies ON tblJobContacts.ContactCoID = tblCompanies.CompanyID
 	LEFT JOIN 
     tblJobContactTypes ON tblJobContacts.ContactTitle = tblJobContactTypes.ContactTypeID
-    WHERE tblJobContacts.EnquiryID = ${EnquiryID};;
+    WHERE tblJobContacts.EnquiryID = ${EnquiryID};
 `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2242,7 +2242,7 @@ FROM
     E_poline
 WHERE
     E_poline.pohstatus <> 'x' AND ISNUMERIC(E_poline.NumberOnly) = 1 AND
-    E_poline.NumberOnly = ${NumberOnly};;
+    E_poline.NumberOnly = ${NumberOnly};
 `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2271,7 +2271,7 @@ router.route("/contractSales").post(async (req, res) => {
     E_sltran.sltdatedue, E_sltran.sltdatemat, E_sltran.sltpermat, E_sltran.slttoday, E_sltran.sltusser, E_sltran.slaname, E_sltran.csmname, E_sltran.Division, E_sltran.NumberOnly
     FROM E_sltran
     WHERE (((E_sltran.[sltcsm])<>'MEMO')) AND ISNUMERIC(E_sltran.NumberOnly) = 1 AND
-    E_sltran.NumberOnly = ${NumberOnly};;
+    E_sltran.NumberOnly = ${NumberOnly};
     `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2294,7 +2294,7 @@ router.route("/contractSalesAdj").post(async (req, res) => {
     E_cltran.cltqty, E_cltran.cltsser, E_cltran.cltscode, E_cltran.clttoday, E_cltran.cltusser, E_cltran.cltubatch, E_cltran.cltcposn, E_cltran.cltcperiod, E_cltran.cltvallc, E_cltran.cltcurr, E_cltran.cltxrate, E_cltran.cltfromco, E_cltran.clttoco, E_cltran.cltvalno, E_cltran.cltpono, E_cltran.clcname, E_cltran.Grp, E_cltran.Cat, E_cltran.Division, E_cltran.NumberOnly, E_cltran.Sales
     FROM E_cltran
     WHERE (((E_cltran.[Recharge])='Y')) AND ISNUMERIC(E_cltran.NumberOnly) = 1 AND
-    E_cltran.NumberOnly = ${NumberOnly};;
+    E_cltran.NumberOnly = ${NumberOnly};
    `)
     res.status(200).json({
       data: result.recordsets[0]
