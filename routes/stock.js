@@ -226,7 +226,7 @@ router.route("/stockorderSub").get(async (req, res) => {
     const result = await con
       .request()
       .query(
-        `SELECT DISTINCT Description, ID, StockCat, Unit, SalePrice, SupplierCode, IndivAllocation, Live, StockLevel, Dormant FROM qryStockItemList WHERE ID IS NOT NULL  ORDER BY Dormant, StockCat, Description`
+        `SELECT DISTINCT Description, ID,  Unit, SalePrice, SupplierCode, IndivAllocation, Live,  Dormant FROM qryStockItemList WHERE ID IS NOT NULL  ORDER BY Dormant, StockCat, Description`
       );
     res.status(200).json({
       data: result.recordsets[0],
