@@ -336,7 +336,7 @@ router.route("/enquiryfilter").post(async (req, res) => {
       const con = await sql.connect(db);
       const result = await con.request().query(`SELECT FirstName + ' ' + Surname AS EngineerName, EmployeeID
       FROM tblEmployees
-      WHERE OfficeYN = 1
+      
       ORDER BY EngineerName;`)
       res.status(200).json({
         data: result.recordsets[0]

@@ -697,7 +697,7 @@ router.route("/docType").get(async (req, res) => {
     var con = new sql.Request();
 
 
-    con.query(`SELECT tblInsuranceTypes.InsuranceType, tblInsuranceTypes.InsuranceDescription, tblInsuranceTypes.InsuranceTypeID
+    con.query(`SELECT tblInsuranceTypes.InsuranceType, tblInsuranceTypes.InsuranceDescription, tblInsuranceTypes.InsuranceTypeID, tblInsuranceTypes.TrackProgress, tblInsuranceTypes.ValidYears,  tblInsuranceTypes.Insurance
       FROM tblInsuranceTypes
       ORDER BY tblInsuranceTypes.Insurance DESC , tblInsuranceTypes.InsuranceType;      
       `, function (err, record) {
