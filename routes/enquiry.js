@@ -98,7 +98,7 @@ router.route("/enquiryView").post(async (req, res) => {
 
     for (const [date, value] of dates) {
       if (dateSelected == date) {
-        time = `${value} BETWEEN '${startDate}' AND '${endDate}' AND `;
+        time = `${value} BETWEEN '${startDate}' AND '${endDate}' `;
         break;
       }
     }
