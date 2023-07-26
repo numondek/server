@@ -98,7 +98,7 @@ router.route("/enquiryView").post(async (req, res) => {
 
     for (const [date, value] of dates) {
       if (dateSelected == date) {
-        time = `${value} BETWEEN '${startDate}' AND '${endDate}' AND `;
+        time = `${value} BETWEEN '${startDate}' AND '${endDate}' `;
         break;
       }
     }
@@ -278,33 +278,66 @@ router.route("/enquiryRA").get(async (req, res) => {
 
 
 router.route("/detail").post(async (req, res) => {
-  sql.connect(db, function (err) {
-    if (err) {
-      console.log(err);
-    }
-    var con = new sql.Request();
-    console.log(req.body['EnquiryNo']);
+  try {
+    const data = req.body;
+    const id = data.EnquiryID;
+    console.log(data);
 
-    con.query(`INSERT INTO tblEnquiries (EnquiryNo, EnqName, Address, Town, County, PostCode, EstimatorID, ManagerID, EnquiryTypeID)
-      VALUES ('${req.body['EnquiryNo']}', 'John Smith', '123 Main Street', 'London', 'Greater London', 'SW1A 1AA', 123, 456, 789);
-      `, function (err, record) {
-      if (err) {
-        console.log(err);
-        res.status(500).json({
-          status: false
-        });
-      } else {
-        // console.log(record.recordsets[0]);
-        var data = record.recordsets[0];
-        // console.log('data[0]');
-        res.status(200).json({
-          data
-        });
+    const setClauses = [];
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== null && key !== "EnquiryID") {
+        let formattedValue = value;
+        if (typeof value === "boolean") {
+          formattedValue = value ? 1 : 0;
+        } else if (typeof value === "string") {
+          formattedValue = `'${value}'`;
+        }
+        setClauses.push(`${key} = ${formattedValue}`);
       }
+    }
 
-    })
-  });
+    let query;
+    if (id !== null) {
+      // Perform an UPDATE query
+      query = `UPDATE tblEnquiries SET ${setClauses.join(
+        ", "
+      )} WHERE EnquiryID = ${id}`;
+    } else {
+      // Perform an INSERT query
+      const columnNames = Object.keys(data).filter(
+        (key) => key !== "EnquiryID"
+      );
+      const columnValues = columnNames.map((key) => {
+        let value = data[key];
+        if (typeof value === "boolean") {
+          value = value ? 1 : 0;
+        } else if (typeof value === "string") {
+          value = `'${value}'`;
+        }
+        else if (value === null) {
+          value = 'NULL';
+        }
+        return value;
+      });
+      query = `INSERT INTO tblEnquiries (${columnNames.join(
+        ", "
+      )}) VALUES (${columnValues.join(", ")})`;
+      // console.log(query);
+    }
 
+    const con = await sql.connect(db);
+    const result = await con.request().query(query);
+    console.log(query);
+
+    res.status(200).json({
+      data: "successful",
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: "failure",
+    });
+  }
 });
 
 
@@ -697,7 +730,7 @@ router.route("/docType").get(async (req, res) => {
     var con = new sql.Request();
 
 
-    con.query(`SELECT tblInsuranceTypes.InsuranceType, tblInsuranceTypes.InsuranceDescription, tblInsuranceTypes.InsuranceTypeID
+    con.query(`SELECT tblInsuranceTypes.InsuranceType, tblInsuranceTypes.InsuranceDescription, tblInsuranceTypes.InsuranceTypeID, tblInsuranceTypes.TrackProgress, tblInsuranceTypes.ValidYears,  tblInsuranceTypes.Insurance
       FROM tblInsuranceTypes
       ORDER BY tblInsuranceTypes.Insurance DESC , tblInsuranceTypes.InsuranceType;      
       `, function (err, record) {
@@ -1589,7 +1622,8 @@ router.route("/jobLogByPhase").post(async (req, res) => {
     qryPileSchedLogDetailsJob.TestStatus
     FROM
     qryPileSchedLogDetailsJob
-   ;`)
+    WHERE qryPileSchedLogDetailsJob.ContractNo = '${ContractNo}' ;
+   `)
     res.status(200).json({
       data: result.recordsets[0]
     });
@@ -1604,9 +1638,9 @@ router.route("/jobLogByPhase").post(async (req, res) => {
 
 router.route("/jobLogByCage").post(async (req, res) => {
   try {
-    let EnquiryID = req.body['EnquiryID'];
+    let ContractNo = req.body['ContractNo'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 qryPileSchedLogDetailsJob.ContractNo,
+    const result = await con.request().query(`SELECT  qryPileSchedLogDetailsJob.ContractNo,
     qryPileSchedLogDetailsJob.EnqName,
     qryPileSchedLogDetailsJob.FullAddress,
     qryPileSchedLogDetailsJob.RigNo,
@@ -1620,7 +1654,8 @@ router.route("/jobLogByCage").post(async (req, res) => {
     qryPileSchedLogDetailsJob.Status,
     qryPileSchedLogDetailsJob.CageType
     FROM
-    qryPileSchedLogDetailsJob;`)
+    qryPileSchedLogDetailsJob
+    WHERE qryPileSchedLogDetailsJob.ContractNo = '${ContractNo}' ;`)
     res.status(200).json({
       data: result.recordsets[0]
     });
@@ -1637,8 +1672,9 @@ router.route("/scheduleHistory").post(async (req, res) => {
   try {
     let EnquiryID = req.body['EnquiryID'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 100 *
-    FROM qryPileSchedAll;`)
+    const result = await con.request().query(`SELECT *
+    FROM qryPileSchedAll
+    WHERE qryPileSchedAll.EnquiryID = ${EnquiryID};`)
     res.status(200).json({
       data: result.recordsets[0]
     });
@@ -1827,7 +1863,7 @@ LEFT JOIN
     tblCompanies ON tblJobContacts.ContactCoID = tblCompanies.CompanyID
 	LEFT JOIN 
     tblJobContactTypes ON tblJobContacts.ContactTitle = tblJobContactTypes.ContactTypeID
-    WHERE tblJobContacts.EnquiryID = ${EnquiryID};;
+    WHERE tblJobContacts.EnquiryID = ${EnquiryID};
 `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2002,7 +2038,7 @@ router.route("/contractCost").post(async (req, res) => {
   try {
     let NumberOnly = req.body['NumberOnly'];
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod,
+    const result = await con.request().query(`SELECT  E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod,
     E_cltran.cltdate, E_cltran.cltmod, E_cltran.cltbatch, E_cltran.cltcount, E_cltran.clttype,
     E_cltran.cltref1, E_cltran.cltref2, E_cltran.cltnotes, E_cltran.cltval,
     CAST(E_cltran.cltval AS float) AS cltval2, E_cltran.cltqty, E_cltran.cltsser,
@@ -2061,7 +2097,7 @@ router.route("/purchaseOrder").post(async (req, res) => {
     const NumberOnly = req.body['NumberOnly'];
     
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10
+    const result = await con.request().query(`SELECT 
     E_poline.OrderNo,
     E_poline.pohcode,
     E_poline.pohserial,
@@ -2242,7 +2278,7 @@ FROM
     E_poline
 WHERE
     E_poline.pohstatus <> 'x' AND ISNUMERIC(E_poline.NumberOnly) = 1 AND
-    E_poline.NumberOnly = ${NumberOnly};;
+    E_poline.NumberOnly = ${NumberOnly};
 `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2260,7 +2296,7 @@ router.route("/contractSales").post(async (req, res) => {
     const NumberOnly = req.body['NumberOnly'];
     
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 E_sltran.sltcon, E_sltran.sltcode, E_sltran.sltperiod, E_sltran.sltdate, E_sltran.sltbatch, E_sltran.sltcount, E_sltran.slttype, E_sltran.sltcsm, E_sltran.sltref1, E_sltran.sltref2, E_sltran.sltnotes, E_sltran.sltgoods, E_sltran.sltvat, E_sltran.sltdisc, E_sltran.sltretn, E_sltran.sltspare, E_sltran.slttotal, E_sltran.sltout,
+    const result = await con.request().query(`SELECT  E_sltran.sltcon, E_sltran.sltcode, E_sltran.sltperiod, E_sltran.sltdate, E_sltran.sltbatch, E_sltran.sltcount, E_sltran.slttype, E_sltran.sltcsm, E_sltran.sltref1, E_sltran.sltref2, E_sltran.sltnotes, E_sltran.sltgoods, E_sltran.sltvat, E_sltran.sltdisc, E_sltran.sltretn, E_sltran.sltspare, E_sltran.slttotal, E_sltran.sltout,
     CAST(E_sltran.sltgoods AS DECIMAL(18,2)) AS sltgoods2,
     CAST(E_sltran.sltvat AS DECIMAL(18,2)) AS sltvat2,
     CAST(E_sltran.sltdisc AS DECIMAL(18,2)) AS sltdisc2,
@@ -2271,7 +2307,7 @@ router.route("/contractSales").post(async (req, res) => {
     E_sltran.sltdatedue, E_sltran.sltdatemat, E_sltran.sltpermat, E_sltran.slttoday, E_sltran.sltusser, E_sltran.slaname, E_sltran.csmname, E_sltran.Division, E_sltran.NumberOnly
     FROM E_sltran
     WHERE (((E_sltran.[sltcsm])<>'MEMO')) AND ISNUMERIC(E_sltran.NumberOnly) = 1 AND
-    E_sltran.NumberOnly = ${NumberOnly};;
+    E_sltran.NumberOnly = ${NumberOnly};
     `)
     res.status(200).json({
       data: result.recordsets[0]
@@ -2289,12 +2325,12 @@ router.route("/contractSalesAdj").post(async (req, res) => {
     const NumberOnly = req.body['NumberOnly'];
     
     const con = await sql.connect(db);
-    const result = await con.request().query(`SELECT TOP 10 E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod, E_cltran.cltdate, E_cltran.cltmod, E_cltran.cltbatch, E_cltran.cltcount, E_cltran.clttype, E_cltran.cltref1, E_cltran.cltref2, E_cltran.cltnotes, E_cltran.cltval,
+    const result = await con.request().query(`SELECT E_cltran.cltserial, E_cltran.cltcode, E_cltran.cltchd, E_cltran.cltopn, E_cltran.cltperiod, E_cltran.cltdate, E_cltran.cltmod, E_cltran.cltbatch, E_cltran.cltcount, E_cltran.clttype, E_cltran.cltref1, E_cltran.cltref2, E_cltran.cltnotes, E_cltran.cltval,
     CAST(E_cltran.cltval AS DECIMAL(18,2)) AS cltval2,
     E_cltran.cltqty, E_cltran.cltsser, E_cltran.cltscode, E_cltran.clttoday, E_cltran.cltusser, E_cltran.cltubatch, E_cltran.cltcposn, E_cltran.cltcperiod, E_cltran.cltvallc, E_cltran.cltcurr, E_cltran.cltxrate, E_cltran.cltfromco, E_cltran.clttoco, E_cltran.cltvalno, E_cltran.cltpono, E_cltran.clcname, E_cltran.Grp, E_cltran.Cat, E_cltran.Division, E_cltran.NumberOnly, E_cltran.Sales
     FROM E_cltran
     WHERE (((E_cltran.[Recharge])='Y')) AND ISNUMERIC(E_cltran.NumberOnly) = 1 AND
-    E_cltran.NumberOnly = ${NumberOnly};;
+    E_cltran.NumberOnly = ${NumberOnly};
    `)
     res.status(200).json({
       data: result.recordsets[0]

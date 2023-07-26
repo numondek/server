@@ -69,6 +69,10 @@ const opportunityRoute = require("./routes/opportunities");
 app.use("/opportunity", opportunityRoute);
 const incidentRoute = require("./routes/incident");
 app.use("/incident", incidentRoute);
+const reportRoute = require("./routes/report");
+app.use("/report", reportRoute);
+const sundryRoute = require("./routes/sundry");
+app.use("/sundry", sundryRoute);
 const filterRoute = require("./routes/filter");
 app.use("/filter", filterRoute);
 

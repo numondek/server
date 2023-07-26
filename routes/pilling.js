@@ -7,28 +7,6 @@ const router = express.Router();
 
 
 
-// router.route("/pillog").get( async(req, res) => {
-//   sql.connect(db, function(err){
-//       if(err){
-//           console.log(err);
-//       }
-//     var con = new sql.Request();
-  
-//     con.query('SELECT TOP 1000 * FROM qryPileLogList ORDER BY qryPileLogList.LogDate DESC , qryPileLogList.RigNo;', function(err, record) {
-//       if (err) {
-//           console.log(err);
-//           res.status(500).json({ status: false });
-//       } else {
-//           // console.log(record.recordsets[0]);
-//           var data = record.recordsets[0];
-//           // console.log('data[0]');
-//           res.status(200).json({data});
-//       }
-      
-//     })  
-//   });
-   
-// });
 
 router.route("/pillog").post(async (req, res) => {
 

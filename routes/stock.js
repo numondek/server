@@ -34,42 +34,36 @@ router.route("/stockitems").get(async (req, res) => {
 router.route("/stockitems").post(async (req, res) => {
   try {
     const data = req.body;
-    let id = req.body['ID'];
+    const id = data.ID;
 
-    let query = "UPDATE tblStockItems SET ";
-    // Generate the SET clause
     const setClauses = [];
     for (const [key, value] of Object.entries(data)) {
-      if (value !== null) {
+      if (value !== null && key !== "ID") {
         let formattedValue = value;
         if (typeof value === "boolean") {
           formattedValue = value ? 1 : 0;
         } else if (typeof value === "string") {
           formattedValue = `'${value}'`;
         }
-        if (formattedValue !== id) {
-          setClauses.push(`${key} = ${formattedValue}`);
-        }
+        setClauses.push(`${key} = ${formattedValue}`);
       }
     }
-    
 
-    query += setClauses.join(", ");
+    const query = `UPDATE tblStockItems SET ${setClauses.join(
+      ", "
+    )} WHERE tblStockItems.ID = ${id};`;
 
-    // Append the WHERE clause if needed
-    query += ` WHERE tblStockItems.ID = ${id};`;
     const con = await sql.connect(db);
+    await con.request().query(query);
     // console.log(query);
-    const result = await con.request().query(query);
-    res.status(200).json({
-      data: 'successful'
-    });
 
-    
+    res.status(200).json({
+      data: "successful",
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      status: "falses",
+      status: "failure",
     });
   }
 });
@@ -132,7 +126,7 @@ router.route("/stockcheck").get(async (req, res) => {
         } else {
           // console.log(record.recordsets[0]);
           var data = record.recordsets[0];
-          console.log("data[0]");
+
           res.status(200).json({ data });
         }
       }
@@ -163,13 +157,76 @@ router.route("/stockorder").get(async (req, res) => {
   });
 });
 
+router.route("/stockorder").post(async (req, res) => {
+  try {
+    const data = req.body;
+    const id = data.StockOrderID;
+    console.log(data);
+
+    const setClauses = [];
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== null && key !== "StockOrderID") {
+        let formattedValue = value;
+        if (typeof value === "boolean") {
+          formattedValue = value ? 1 : 0;
+        } else if (typeof value === "string") {
+          formattedValue = `'${value}'`;
+        }
+        setClauses.push(`${key} = ${formattedValue}`);
+      }
+    }
+
+    let query;
+    if (id !== null) {
+      // Perform an UPDATE query
+      query = `UPDATE tblStockOrder SET ${setClauses.join(
+        ", "
+      )} WHERE StockOrderID = ${id}`;
+    } else {
+      // Perform an INSERT query
+      const columnNames = Object.keys(data).filter(
+        (key) => key !== "StockOrderID"
+      );
+      const columnValues = columnNames.map((key) => {
+        let value = data[key];
+        if (typeof value === "boolean") {
+          value = value ? 1 : 0;
+        } else if (typeof value === "string") {
+          value = `'${value}'`;
+        }
+        else if (value === null) {
+          value = 'NULL';
+        }
+        return value;
+      });
+      query = `INSERT INTO tblStockOrder (${columnNames.join(
+        ", "
+      )}) VALUES (${columnValues.join(", ")})`;
+      // console.log(query);
+    }
+
+    const con = await sql.connect(db);
+    const result = await con.request().query(query);
+    console.log(query);
+
+    res.status(200).json({
+      data: "successful",
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      status: "failure",
+    });
+  }
+});
+
 router.route("/stockorderSub").get(async (req, res) => {
   try {
     const con = await sql.connect(db);
     const result = await con
       .request()
       .query(
-        `SELECT DISTINCT Description, ID, StockCat, Unit, SalePrice, SupplierCode, IndivAllocation, Live, StockLevel, Dormant FROM qryStockItemList WHERE ID IS NOT NULL  ORDER BY Dormant, StockCat, Description`
+        `SELECT DISTINCT Description, ID,  Unit, SalePrice, SupplierCode, IndivAllocation, Live,  Dormant FROM qryStockItemList WHERE ID IS NOT NULL  ORDER BY Dormant, StockCat, Description`
       );
     res.status(200).json({
       data: result.recordsets[0],

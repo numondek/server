@@ -1,8 +1,6 @@
 const express = require("express");
 var db = require('../db/db');
-const config = require("../config");
 const sql = require('mssql/msnodesqlv8')
-require('dotenv').config();
 const router = express.Router();
 
 
@@ -66,6 +64,7 @@ router.route("/rating").get( async(req, res) => {
   });
 
 
+  
 
   router.route("/rating1").get( async(req, res) => {
     sql.connect(db, function(err){
@@ -92,6 +91,44 @@ router.route("/rating").get( async(req, res) => {
       })  
     });
      
+  });
+
+
+  router.route("/rating").post(async (req, res) => {
+    try {
+      const data = req.body;
+      const id = data.ImprovementID;
+  
+      const setClauses = [];
+      for (const [key, value] of Object.entries(data)) {
+        if (value !== null && key !== "ImprovementID") {
+          let formattedValue = value;
+          if (typeof value === "boolean") {
+            formattedValue = value ? 1 : 0;
+          } else if (typeof value === "string") {
+            formattedValue = `'${value}'`;
+          }
+          setClauses.push(`${key} = ${formattedValue}`);
+        }
+      }
+  
+      const query = `UPDATE tblImprovement SET ${setClauses.join(
+        ", "
+      )} WHERE tblImprovement.ImprovementID = ${id};`;
+  // console.log(query);
+      const con = await sql.connect(db);
+      await con.request().query(query);
+      // console.log(query);
+  
+      res.status(200).json({
+        data: "successful",
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: "failure",
+      });
+    }
   });
 
 
@@ -122,6 +159,82 @@ router.route("/rating").get( async(req, res) => {
     });
      
   });
+
+  router.route("/vetting").post(async (req, res) => {
+    try {
+      const data = req.body;
+      const id = data.ID;
+  
+      const setClauses = [];
+      for (const [key, value] of Object.entries(data)) {
+        if (value !== null && key !== "ID") {
+          let formattedValue = value;
+          if (typeof value === "boolean") {
+            formattedValue = value ? 1 : 0;
+          } else if (typeof value === "string") {
+            formattedValue = `'${value}'`;
+          }
+          setClauses.push(`${key} = ${formattedValue}`);
+        }
+      }
+  
+      const query = `UPDATE tblInsurance_Details SET ${setClauses.join(
+        ", "
+      )} WHERE tblInsurance_Details.ID = ${id};`;
+  // console.log(query);
+      const con = await sql.connect(db);
+      await con.request().query(query);
+      // console.log(query);
+  
+      res.status(200).json({
+        data: "successful",
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: "failure",
+      });
+    }
+  });
+
+  
+  router.route("/insuranceCompany").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT CompanyName, CompanyID
+      FROM tblCompanies
+      WHERE TypeID = 9
+      ORDER BY CompanyName;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+  router.route("/type").get(async (req, res) => {
+    try {
+      const con = await sql.connect(db);
+      const result = await con.request().query(`SELECT tblImprovementType.TypeName, tblImprovementType.TypeID, tblImprovementType.Type
+      FROM tblImprovementType;
+      `)
+      res.status(200).json({
+        data: result.recordsets[0]
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        status: false
+      });
+    }
+  });
+
+
 
 
 
