@@ -4,7 +4,7 @@ const sql = require('mssql/msnodesqlv8')
 
 const sqlConfig = {
   database: 'Able',
-  server: 'DESKTOP-EJ6G373',
+  server: 'INIFOME',
   driver:"msnodesqlv8",
   options: {
     trustedConnection:true,
